@@ -7,9 +7,9 @@
 
   <fragment
     android:id="@+id/FirstFragment"
-    android:name="com.example.asg1.ui.editor.FirstFragment"
+    android:name="com.example.asg1.ui.editor.TaskEditFragment"
     android:label="@string/first_fragment_label"
-    tools:layout="@layout/fragment_first">
+    tools:layout="@layout/fragment_task_edit">
 
     <action
       android:id="@+id/action_FirstFragment_to_SecondFragment"

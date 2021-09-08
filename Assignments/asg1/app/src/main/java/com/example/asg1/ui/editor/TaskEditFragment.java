@@ -10,18 +10,18 @@ import androidx.fragment.app.Fragment;
 import androidx.navigation.fragment.NavHostFragment;
 
 import com.example.asg1.R;
-import com.example.asg1.databinding.FragmentFirstBinding;
+import com.example.asg1.databinding.FragmentTaskEditBinding;
 
-public class FirstFragment extends Fragment {
+public class TaskEditFragment extends Fragment {
 
-  private FragmentFirstBinding binding;
+  private FragmentTaskEditBinding binding;
 
   @Override
   public View onCreateView(
     LayoutInflater inflater, ViewGroup container,
     Bundle savedInstanceState
   ) {
-    binding = FragmentFirstBinding.inflate(inflater, container, false);
+    binding = FragmentTaskEditBinding.inflate(inflater, container, false);
     return binding.getRoot();
   }
 

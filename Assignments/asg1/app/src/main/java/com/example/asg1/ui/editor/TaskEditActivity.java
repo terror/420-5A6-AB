@@ -3,6 +3,7 @@ package com.example.asg1.ui.editor;
 import android.os.Bundle;
 
 import com.example.asg1.R;
+import com.example.asg1.databinding.ActivityTaskEditBinding;
 import com.google.android.material.snackbar.Snackbar;
 
 import androidx.appcompat.app.AppCompatActivity;
@@ -14,21 +15,21 @@ import androidx.navigation.Navigation;
 import androidx.navigation.ui.AppBarConfiguration;
 import androidx.navigation.ui.NavigationUI;
 
-import com.example.asg1.databinding.ActivityMainBinding;
+import com.example.asg1.databinding.ActivityTaskEditBinding;
 
 import android.view.Menu;
 import android.view.MenuItem;
 
-public class MainActivity extends AppCompatActivity {
+public class TaskEditActivity extends AppCompatActivity {
 
   private AppBarConfiguration appBarConfiguration;
-  private ActivityMainBinding binding;
+  private ActivityTaskEditBinding binding;
 
   @Override
   protected void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
 
-    binding = ActivityMainBinding.inflate(getLayoutInflater());
+    binding = ActivityTaskEditBinding.inflate(getLayoutInflater());
     setContentView(binding.getRoot());
 
     setSupportActionBar(binding.toolbar);

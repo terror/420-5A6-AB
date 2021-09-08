@@ -10,7 +10,7 @@
     android:supportsRtl="true"
     android:theme="@style/Theme.Asg1">
     <activity
-      android:name=".ui.editor.MainActivity"
+      android:name=".ui.editor.TaskEditActivity"
       android:exported="true"
       android:label="@string/app_name"
       android:theme="@style/Theme.Asg1.NoActionBar">
