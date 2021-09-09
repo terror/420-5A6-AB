@@ -5,8 +5,10 @@ import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.CheckBox;
+import android.widget.RadioButton;
+import android.widget.RadioGroup;
+import android.widget.TextView;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.fragment.app.Fragment;
 import androidx.navigation.NavController;
 import androidx.navigation.Navigation;
 import androidx.navigation.ui.AppBarConfiguration;
@@ -15,8 +17,10 @@ import com.example.asg1.R;
 import com.example.asg1.databinding.ActivityTaskEditBinding;
 import com.example.asg1.model.Priority;
 import com.example.asg1.model.Task;
-
-import java.util.Date;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.Calendar;
+import java.util.Locale;
 
 public class TaskEditActivity extends AppCompatActivity {
   private AppBarConfiguration appBarConfiguration;
@@ -73,18 +77,28 @@ public class TaskEditActivity extends AppCompatActivity {
   }
 
   public void showDebugWindow() {
-    // Grab our `TaskEditFragment` instance.
-    TaskEditFragment taskEditFragment =
-      (TaskEditFragment)getSupportFragmentManager()
-      .findFragmentById(R.id.layoutTaskEdit);
+    // Find all relevant views
+    TextView description      = this.findViewById(R.id.description_editTextTextMultiLine);
+    RadioGroup priority       = this.findViewById(R.id.priority_toolbar_radioGroup);
+    RadioButton priorityValue = this.findViewById(priority.getCheckedRadioButtonId());
+    TextView date             = this.findViewById(R.id.date_toolbar_textView);
+
+    // Parse the `date` text
+    Calendar calendar = Calendar.getInstance();
+    SimpleDateFormat formatter = new SimpleDateFormat("EEE MMM dd HH:mm:ss z yyyy", Locale.ENGLISH);
+    try {
+      calendar.setTime(formatter.parse(date.getText().toString()));// all done
+    } catch(ParseException e) {
+      calendar.setTime(null);
+    }
 
     // Set fields on a new `Task` instance.
     Task task = new Task()
-      .setDue(new Date())
-      .setPriority(Priority.HIGH)
-      .setDescription("Hello, World!");
-      // .setDescription(taskEditFragment.getBinding().descriptionEditTextTextMultiLine.getText().toString());
+      .setDue(calendar.getTime())
+      .setPriority(priorityValue != null ? Priority.from(priorityValue.getText().toString()) : Priority.NONE)
+      .setDescription(description.getText().toString());
 
+    // Display the `Task` instance in a debug window.
     new AlertDialog.Builder(this)
       .setTitle("Debug")
       .setMessage(task.toString())

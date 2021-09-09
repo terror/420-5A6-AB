@@ -8,4 +8,16 @@ public enum Priority {
   LOW,
   MEDIUM,
   HIGH;
+
+  public static Priority from(String s) {
+    switch (s.toLowerCase()) {
+      case "low":
+        return Priority.LOW;
+      case "medium":
+        return Priority.MEDIUM;
+      case "high":
+        return Priority.HIGH;
+    }
+    return NONE;
+  }
 }

@@ -9,23 +9,20 @@ import androidx.fragment.app.Fragment;
 import com.example.asg1.databinding.FragmentTaskEditBinding;
 import com.example.asg1.ui.handlers.DatePickerDialogOnSetDateHandler;
 import com.example.asg1.ui.util.DatePickerDialogFragment;
-
 import java.util.Calendar;
 
 public class TaskEditFragment extends Fragment {
   private FragmentTaskEditBinding binding;
 
   @Override
-  public View onCreateView(
-    LayoutInflater inflater, ViewGroup container,
-    Bundle savedInstanceState
-  ) {
+  public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
     binding = FragmentTaskEditBinding.inflate(inflater, container, false);
     return binding.getRoot();
   }
 
   public void onViewCreated(@NonNull View view, Bundle savedInstanceState) {
     super.onViewCreated(view, savedInstanceState);
+    // Set all event listeners
     binding.dateImageButton.setOnClickListener(_view -> chooseDate());
     binding.priorityImageButton.setOnClickListener(_view -> choosePriority());
     binding.dateToolbarClose.setOnClickListener(_view -> closeDate());
