@@ -20,10 +20,11 @@ public class DatePickerDialogOnSetDateHandler implements DatePickerDialog.OnDate
     Calendar calendar = Calendar.getInstance();
     calendar.set(year, month, day);
 
-    // Create a `TimePickerDialogFragment` with a custom event listener
     // Default the time picker to `8:00AM`.
     calendar.set(Calendar.HOUR, 8);
     calendar.set(Calendar.MINUTE, 0);
+
+    // Create a `TimePickerDialogFragment` with a custom event listener
     TimePickerDialogFragment timePickerFragment = TimePickerDialogFragment.create(
       calendar.getTime(),
       new TimePickerDialogOnSetTimeHandler(fragment, calendar)

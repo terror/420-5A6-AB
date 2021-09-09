@@ -6,12 +6,17 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.CheckBox;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.fragment.app.Fragment;
 import androidx.navigation.NavController;
 import androidx.navigation.Navigation;
 import androidx.navigation.ui.AppBarConfiguration;
 import androidx.navigation.ui.NavigationUI;
 import com.example.asg1.R;
 import com.example.asg1.databinding.ActivityTaskEditBinding;
+import com.example.asg1.model.Priority;
+import com.example.asg1.model.Task;
+
+import java.util.Date;
 
 public class TaskEditActivity extends AppCompatActivity {
   private AppBarConfiguration appBarConfiguration;
@@ -36,10 +41,14 @@ public class TaskEditActivity extends AppCompatActivity {
     // Inflate the menu; this adds items to the action bar if it is present.
     getMenuInflater().inflate(R.menu.menu_task_edit, menu);
 
+    // Grab the app bar's `CheckBox` by ID.
+    CheckBox checkBox = (CheckBox)
+      menu
+        .findItem(R.id.app_bar_checkbox)
+        .getActionView();
+
     // Set an onCheckedChange listener to the app bar's checkbox
     // displaying the debug window if it is checked.
-    CheckBox checkBox =
-      (CheckBox) menu.findItem(R.id.app_bar_checkbox).getActionView();
     checkBox.setOnCheckedChangeListener((compoundButton, isChecked) -> {
       if (isChecked)
         showDebugWindow();
@@ -64,9 +73,21 @@ public class TaskEditActivity extends AppCompatActivity {
   }
 
   public void showDebugWindow() {
+    // Grab our `TaskEditFragment` instance.
+    TaskEditFragment taskEditFragment =
+      (TaskEditFragment)getSupportFragmentManager()
+      .findFragmentById(R.id.layoutTaskEdit);
+
+    // Set fields on a new `Task` instance.
+    Task task = new Task()
+      .setDue(new Date())
+      .setPriority(Priority.HIGH)
+      .setDescription("Hello, World!");
+      // .setDescription(taskEditFragment.getBinding().descriptionEditTextTextMultiLine.getText().toString());
+
     new AlertDialog.Builder(this)
       .setTitle("Debug")
-      .setMessage("Are you sure you want to delete this entry?")
+      .setMessage(task.toString())
       .setNegativeButton(android.R.string.no, null)
       .setIcon(android.R.drawable.ic_dialog_alert)
       .show();

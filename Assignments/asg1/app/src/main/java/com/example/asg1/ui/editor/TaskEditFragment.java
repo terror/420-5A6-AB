@@ -7,13 +7,13 @@ import android.view.ViewGroup;
 import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
 import com.example.asg1.databinding.FragmentTaskEditBinding;
-import com.example.asg1.model.Task;
 import com.example.asg1.ui.handlers.DatePickerDialogOnSetDateHandler;
 import com.example.asg1.ui.util.DatePickerDialogFragment;
 
+import java.util.Calendar;
+
 public class TaskEditFragment extends Fragment {
   private FragmentTaskEditBinding binding;
-  private Task task;
 
   @Override
   public View onCreateView(
@@ -21,43 +21,15 @@ public class TaskEditFragment extends Fragment {
     Bundle savedInstanceState
   ) {
     binding = FragmentTaskEditBinding.inflate(inflater, container, false);
-
-    // *** Event Listeners ***
-    binding.dateImageButton.setOnClickListener(view -> {
-        binding.dateImageButton.setEnabled(false);
-        DatePickerDialogFragment.create(new DatePickerDialogOnSetDateHandler( this))
-          .show(getParentFragmentManager(), "datePicker");
-      }
-    );
-
-    binding.priorityImageButton.setOnClickListener(view -> {
-        binding.priorityImageButton.setEnabled(false);
-        binding.priorityToolbarLayout.setVisibility(View.VISIBLE);
-      }
-    );
-
-    binding.dateToolbarClose.setOnClickListener(view -> {
-      binding.dateImageButton.setEnabled(true);
-      binding.dateToolbarTextView.setText("");
-        binding.dateToolbarLayout.setVisibility(View.GONE);
-      }
-    );
-
-    binding.priorityCloseImageButton.setOnClickListener(view -> {
-        binding.priorityImageButton.setEnabled(true);
-        binding.priorityToolbarRadioGroup.clearCheck();
-        binding.priorityToolbarLayout.setVisibility(View.GONE);
-      }
-    );
-
-    // Create our empty new task
-    task = new Task();
-
     return binding.getRoot();
   }
 
   public void onViewCreated(@NonNull View view, Bundle savedInstanceState) {
     super.onViewCreated(view, savedInstanceState);
+    binding.dateImageButton.setOnClickListener(_view -> chooseDate());
+    binding.priorityImageButton.setOnClickListener(_view -> choosePriority());
+    binding.dateToolbarClose.setOnClickListener(_view -> closeDate());
+    binding.priorityCloseImageButton.setOnClickListener(_view -> closePriority());
   }
 
   @Override
@@ -66,7 +38,50 @@ public class TaskEditFragment extends Fragment {
     binding = null;
   }
 
-  public FragmentTaskEditBinding getBinding() {
-    return binding;
+  public void chooseDate() {
+    // Disable the date image button
+    binding.dateImageButton.setEnabled(false);
+
+    // Display the DatePickerDialog
+    DatePickerDialogFragment.create(new DatePickerDialogOnSetDateHandler( this))
+      .show(getParentFragmentManager(), "datePicker");
+  }
+
+  public void displayDate(Calendar calendar) {
+    // Set the date toolbar's text to the calendars date string
+    binding.dateToolbarTextView.setText(calendar.getTime().toString());
+
+    // Make the date toolbar visible
+    binding.dateToolbarLayout.setVisibility(View.VISIBLE);
+  }
+
+  public void choosePriority() {
+    // Disable the priority image button
+    binding.priorityImageButton.setEnabled(false);
+
+    // Make the priority toolbar visible
+    binding.priorityToolbarLayout.setVisibility(View.VISIBLE);
+  }
+
+  public void closeDate() {
+    // Enable the date image button
+    binding.dateImageButton.setEnabled(true);
+
+    // Clear the date toolbar's text view
+    binding.dateToolbarTextView.setText("");
+
+    // Hide the date toolbar
+    binding.dateToolbarLayout.setVisibility(View.GONE);
+  }
+
+  public void closePriority() {
+    // Enable the priority image button
+    binding.priorityImageButton.setEnabled(true);
+
+    // Clear the priority radio group's check
+    binding.priorityToolbarRadioGroup.clearCheck();
+
+    // Hide the priority toolbar
+    binding.priorityToolbarLayout.setVisibility(View.GONE);
   }
 }

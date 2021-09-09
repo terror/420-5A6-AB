@@ -1,7 +1,6 @@
 package com.example.asg1.ui.handlers;
 
 import android.app.TimePickerDialog;
-import android.view.View;
 import android.widget.TimePicker;
 import com.example.asg1.ui.editor.TaskEditFragment;
 
@@ -24,7 +23,6 @@ public class TimePickerDialogOnSetTimeHandler implements TimePickerDialog.OnTime
     calendar.set(Calendar.MINUTE, minute);
 
     // Set the date toolbar text and display it
-    fragment.getBinding().dateToolbarTextView.setText(calendar.getTime().toString());
-    fragment.getBinding().dateToolbarLayout.setVisibility(View.VISIBLE);
+    fragment.displayDate(calendar);
   }
 }
