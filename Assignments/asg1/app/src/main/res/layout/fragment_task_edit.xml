@@ -4,4 +4,81 @@
   xmlns:tools="http://schemas.android.com/tools"
   android:layout_width="match_parent"
   android:layout_height="match_parent"
-  tools:context=".ui.editor.TaskEditFragment"/>
+  tools:context=".ui.editor.TaskEditFragment">
+
+  <EditText
+    android:id="@+id/description_editTextTextMultiLine"
+    android:layout_width="0dp"
+    android:layout_height="0dp"
+    android:ems="10"
+    android:gravity="start|top"
+    android:hint="Description"
+    android:inputType="textMultiLine"
+    app:layout_constraintBottom_toTopOf="@+id/bottom_toolbar"
+    app:layout_constraintEnd_toEndOf="parent"
+    app:layout_constraintHorizontal_bias="0.0"
+    app:layout_constraintStart_toStartOf="parent"
+    app:layout_constraintTop_toTopOf="parent"
+    app:layout_constraintVertical_bias="0.0" />
+
+  <androidx.appcompat.widget.Toolbar
+    android:id="@+id/bottom_toolbar"
+    android:layout_width="0dp"
+    android:layout_height="wrap_content"
+    android:background="#CD000000"
+    android:minHeight="?attr/actionBarSize"
+    android:theme="?attr/actionBarTheme"
+    app:layout_constraintBottom_toBottomOf="parent"
+    app:layout_constraintEnd_toEndOf="parent"
+    app:layout_constraintStart_toStartOf="parent" />
+
+  <ImageButton
+    android:id="@+id/undo_imageButton"
+    android:layout_width="0dp"
+    android:layout_height="0dp"
+    android:background="#00FFFFFF"
+    android:src="@android:drawable/ic_menu_revert"
+    app:layout_constraintBottom_toBottomOf="parent"
+    app:layout_constraintEnd_toStartOf="@+id/left_guideline"
+    app:layout_constraintStart_toStartOf="parent"
+    app:layout_constraintTop_toBottomOf="@+id/description_editTextTextMultiLine"
+    app:layout_constraintVertical_bias="0.333" />
+
+  <androidx.constraintlayout.widget.Guideline
+    android:id="@+id/left_guideline"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    app:layout_constraintGuide_percent="0.15" />
+
+  <androidx.constraintlayout.widget.Guideline
+    android:id="@+id/right_guideline"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    app:layout_constraintGuide_percent="0.75" />
+
+  <ImageButton
+    android:id="@+id/date_imageButton"
+    android:layout_width="0dp"
+    android:layout_height="wrap_content"
+    android:layout_marginEnd="8dp"
+    android:background="#00FFFFFF"
+    android:src="@android:drawable/ic_menu_recent_history"
+    app:layout_constraintBottom_toBottomOf="@+id/bottom_toolbar"
+    app:layout_constraintEnd_toEndOf="parent"
+    app:layout_constraintTop_toBottomOf="@+id/description_editTextTextMultiLine" />
+
+  <ImageButton
+    android:id="@+id/priority_imageButton"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:layout_marginStart="8dp"
+    android:background="#00FFFFFF"
+    android:src="@android:drawable/ic_dialog_alert"
+    app:layout_constraintBottom_toBottomOf="parent"
+    app:layout_constraintEnd_toStartOf="@+id/date_imageButton"
+    app:layout_constraintStart_toStartOf="@+id/right_guideline"
+    app:layout_constraintTop_toBottomOf="@+id/description_editTextTextMultiLine" />
+
+</androidx.constraintlayout.widget.ConstraintLayout>
