@@ -9,9 +9,17 @@ import java.util.Calendar;
 
 public class DatePickerDialogOnSetDateHandler implements DatePickerDialog.OnDateSetListener {
   private TaskEditFragment fragment;
+  private int hour = 8;
+  private int minute = 0;
 
   public DatePickerDialogOnSetDateHandler(TaskEditFragment fragment) {
     this.fragment = fragment;
+  }
+
+  public DatePickerDialogOnSetDateHandler(TaskEditFragment fragment, int hour, int minute) {
+    this.fragment = fragment;
+    this.hour = hour;
+    this.minute = minute;
   }
 
   @Override
@@ -20,9 +28,10 @@ public class DatePickerDialogOnSetDateHandler implements DatePickerDialog.OnDate
     Calendar calendar = Calendar.getInstance();
     calendar.set(year, month, day);
 
-    // Default the time picker to `8:00AM`.
-    calendar.set(Calendar.HOUR, 8);
-    calendar.set(Calendar.MINUTE, 0);
+    // Default the time picker to `8:00AM` or the currently
+    // selected time.
+    calendar.set(Calendar.HOUR, hour);
+    calendar.set(Calendar.MINUTE, minute);
 
     // Create a `TimePickerDialogFragment` with a custom event listener
     TimePickerDialogFragment timePickerFragment = TimePickerDialogFragment.create(

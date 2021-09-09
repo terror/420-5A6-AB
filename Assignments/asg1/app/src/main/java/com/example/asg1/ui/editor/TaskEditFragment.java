@@ -9,7 +9,11 @@ import androidx.fragment.app.Fragment;
 import com.example.asg1.databinding.FragmentTaskEditBinding;
 import com.example.asg1.ui.handlers.DatePickerDialogOnSetDateHandler;
 import com.example.asg1.ui.util.DatePickerDialogFragment;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.Calendar;
+import java.util.Date;
+import java.util.Locale;
 
 public class TaskEditFragment extends Fragment {
   private FragmentTaskEditBinding binding;
@@ -26,6 +30,7 @@ public class TaskEditFragment extends Fragment {
     binding.dateImageButton.setOnClickListener(_view -> chooseDate());
     binding.priorityImageButton.setOnClickListener(_view -> choosePriority());
     binding.dateToolbarClose.setOnClickListener(_view -> closeDate());
+    binding.dateToolbar.setOnClickListener(_view -> editDate());
     binding.priorityCloseImageButton.setOnClickListener(_view -> closePriority());
   }
 
@@ -42,6 +47,22 @@ public class TaskEditFragment extends Fragment {
     // Display the DatePickerDialog
     DatePickerDialogFragment.create(new DatePickerDialogOnSetDateHandler( this))
       .show(getParentFragmentManager(), "datePicker");
+  }
+
+  public void editDate() {
+    // Get the current date
+    Calendar curr = Calendar.getInstance();
+    curr.setTime(getDateSelection());
+
+    // Display the DatePickerDialog with the currently selected date
+    DatePickerDialogFragment.create(
+      curr.getTime(),
+      new DatePickerDialogOnSetDateHandler(
+        this,
+        curr.get(Calendar.HOUR),
+        curr.get(Calendar.MINUTE)
+      )
+    ).show(getParentFragmentManager(), "datePicker");
   }
 
   public void displayDate(Calendar calendar) {
@@ -80,5 +101,22 @@ public class TaskEditFragment extends Fragment {
 
     // Hide the priority toolbar
     binding.priorityToolbarLayout.setVisibility(View.GONE);
+  }
+
+  public Date getDateSelection() {
+    // Grab the current date selection as a string
+    String date = binding.dateToolbarTextView.getText().toString();
+
+    Calendar calendar = Calendar.getInstance();
+    SimpleDateFormat formatter = new SimpleDateFormat("EEE MMM dd HH:mm:ss z yyyy", Locale.ENGLISH);
+
+    // Parse the date string
+    try {
+      calendar.setTime(formatter.parse(date));
+    } catch(ParseException e) {
+      calendar.setTime(new Date());
+    }
+
+    return calendar.getTime();
   }
 }
