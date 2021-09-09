@@ -121,7 +121,7 @@
         app:layout_constraintTop_toTopOf="parent">
 
         <RadioButton
-          android:id="@+id/radioButton2"
+          android:id="@+id/priority_low_radioButton"
           android:layout_width="match_parent"
           android:layout_height="wrap_content"
           android:paddingLeft="10dp"
@@ -130,7 +130,7 @@
           android:textColor="#FFFFFF" />
 
         <RadioButton
-          android:id="@+id/radioButton"
+          android:id="@+id/priority_medium_radioButton"
           android:layout_width="match_parent"
           android:layout_height="wrap_content"
           android:paddingLeft="10dp"
@@ -139,7 +139,7 @@
           android:textColor="#FFFFFF" />
 
         <RadioButton
-          android:id="@+id/radioButton3"
+          android:id="@+id/priority_high_radioButton"
           android:layout_width="wrap_content"
           android:layout_height="wrap_content"
           android:layout_weight="1"

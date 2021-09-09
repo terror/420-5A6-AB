@@ -20,6 +20,7 @@ import com.example.asg1.model.Task;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
+import java.util.Date;
 import java.util.Locale;
 
 public class TaskEditActivity extends AppCompatActivity {
@@ -87,13 +88,14 @@ public class TaskEditActivity extends AppCompatActivity {
     Calendar calendar = Calendar.getInstance();
     SimpleDateFormat formatter = new SimpleDateFormat("EEE MMM dd HH:mm:ss z yyyy", Locale.ENGLISH);
     try {
-      calendar.setTime(formatter.parse(date.getText().toString()));// all done
+      calendar.setTime(formatter.parse(date.getText().toString()));
     } catch(ParseException e) {
-      calendar.setTime(null);
+      calendar.setTime(new Date());
     }
 
     // Set fields on a new `Task` instance.
     Task task = new Task()
+      // FIXME: date should be set to null properly
       .setDue(calendar.getTime())
       .setPriority(priorityValue != null ? Priority.from(priorityValue.getText().toString()) : Priority.NONE)
       .setDescription(description.getText().toString());
