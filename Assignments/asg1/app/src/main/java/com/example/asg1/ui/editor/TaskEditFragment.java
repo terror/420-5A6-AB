@@ -3,7 +3,6 @@ package com.example.asg1.ui.editor;
 import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -34,9 +33,9 @@ public class TaskEditFragment extends Fragment {
 
   // Map radio button ID's -> priority variants
   private HashMap<Integer, Priority> PRIORITY_RADIO_BUTTON_ID_MAP = new HashMap() {{
-    put(R.id.priority_high_radioButton,   Priority.HIGH);
+    put(R.id.priority_high_radioButton, Priority.HIGH);
     put(R.id.priority_medium_radioButton, Priority.MEDIUM);
-    put(R.id.priority_low_radioButton,    Priority.LOW);
+    put(R.id.priority_low_radioButton, Priority.LOW);
   }};
 
   @Override
@@ -65,11 +64,9 @@ public class TaskEditFragment extends Fragment {
     binding.priorityToolbarRadioGroup.setOnCheckedChangeListener((radioGroup, id) -> {
       // Grab the currently checked radio button
       RadioButton radioButton = radioGroup.findViewById(radioGroup.getCheckedRadioButtonId());
-
       // Ensure it's checked and non-null
       if (radioButton != null && radioButton.isChecked()) {
         Priority priority = PRIORITY_RADIO_BUTTON_ID_MAP.get(radioButton.getId());
-        Log.d("[setOnCheckedChangeListener]", priority.toString());
         // Only add to the history if the current priority isn't equal to the last
         if (getCurrentTask().getPriority() != priority)
           addTask(getCurrentTask().setPriority(priority));
@@ -84,11 +81,8 @@ public class TaskEditFragment extends Fragment {
   }
 
   private void chooseDate() {
-    // Disable the date image button
-    binding.dateImageButton.setEnabled(false);
-
     // Display the DatePickerDialog
-    DatePickerDialogFragment.create(new DatePickerDialogOnSetDateHandler( this))
+    DatePickerDialogFragment.create(new DatePickerDialogOnSetDateHandler(this))
       .show(getParentFragmentManager(), "datePicker");
   }
 
@@ -100,15 +94,14 @@ public class TaskEditFragment extends Fragment {
     // Display the DatePickerDialog with the currently selected date
     DatePickerDialogFragment.create(
       curr.getTime(),
-      new DatePickerDialogOnSetDateHandler(
-        this,
-        curr.get(Calendar.HOUR),
-        curr.get(Calendar.MINUTE)
-      )
+      new DatePickerDialogOnSetDateHandler(this, curr.get(Calendar.HOUR), curr.get(Calendar.MINUTE))
     ).show(getParentFragmentManager(), "datePicker");
   }
 
   public void displayDate(Calendar calendar) {
+    // Disable the date image button
+    binding.dateImageButton.setEnabled(false);
+
     // Set the date toolbar's text to the calendars date string
     binding.dateToolbarTextView.setText(calendar.getTime().toString());
 
@@ -171,7 +164,7 @@ public class TaskEditFragment extends Fragment {
   private TextWatcher onTextChanged() {
     return new TextWatcher() {
       @Override
-      public void beforeTextChanged(CharSequence s, int start, int count, int after) { }
+      public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
 
       @Override
       public void onTextChanged(CharSequence s, int start, int before, int count) {
@@ -179,13 +172,11 @@ public class TaskEditFragment extends Fragment {
       }
 
       @Override
-      public void afterTextChanged(Editable editable) { }
+      public void afterTextChanged(Editable editable) {}
     };
   }
 
   private void undo() {
-    Log.d("[undo]", history.toString());
-
     // If there's no previous task, hide everything
     if (history.size() < 2) {
       binding.descriptionEditTextTextMultiLine.setText("");
@@ -208,7 +199,7 @@ public class TaskEditFragment extends Fragment {
     // If the previous due date is null, hide the toolbar.
     else if (prev.getDue() == null)
       hideDate();
-    // Set the date text to the previous one
+      // Set the date text to the previous one
     else
       binding.dateToolbarTextView.setText(prev.getDue().toString());
 
@@ -221,7 +212,7 @@ public class TaskEditFragment extends Fragment {
     // If the previous priority is null, hide the toolbar.
     else if (prev.getPriority() == Priority.NONE)
       hidePriority();
-    // Check the corresponding radio button (high, medium or low)
+      // Check the corresponding radio button (high, medium or low)
     else
       checkPriority(prev.getPriority());
   }
@@ -235,12 +226,8 @@ public class TaskEditFragment extends Fragment {
 
     // Parse the date string
     try {
-      calendar.setTime(
-        Objects.requireNonNull(
-          formatter.parse(date)
-        )
-      );
-    } catch(ParseException e) {
+      calendar.setTime(Objects.requireNonNull(formatter.parse(date)));
+    } catch (ParseException e) {
       calendar.setTime(new Date());
     }
 
@@ -248,16 +235,11 @@ public class TaskEditFragment extends Fragment {
   }
 
   private void checkPriority(Priority priority) {
-    switch (priority) {
-      case HIGH:
-        binding.priorityToolbarRadioGroup.check(R.id.priority_high_radioButton);
-        break;
-      case MEDIUM:
-        binding.priorityToolbarRadioGroup.check(R.id.priority_medium_radioButton);
-        break;
-      case LOW:
-        binding.priorityToolbarRadioGroup.check(R.id.priority_low_radioButton);
-        break;
+    // Check the radio button with ID corresponding to the passed
+    // in `Priority` variant.
+    for (Integer id : PRIORITY_RADIO_BUTTON_ID_MAP.keySet()) {
+      if (PRIORITY_RADIO_BUTTON_ID_MAP.get(id).equals(priority))
+        binding.priorityToolbarRadioGroup.check(id);
     }
   }
 
@@ -272,12 +254,13 @@ public class TaskEditFragment extends Fragment {
   }
 
   public Task getPreviousTask() {
+    // The task on top of the stack is the current one,
+    // pop it off and return the one under it.
     history.pop();
     return history.pop();
   }
 
   public void addTask(Task task) {
-    Log.d("[addTask]", history.toString());
     // Push a new task onto the history
     history.push(task);
   }

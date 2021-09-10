@@ -79,10 +79,10 @@ public class TaskEditActivity extends AppCompatActivity {
 
   private void showDebugWindow() {
     // Find all relevant views
-    TextView description      = this.findViewById(R.id.description_editTextTextMultiLine);
-    RadioGroup priority       = this.findViewById(R.id.priority_toolbar_radioGroup);
+    TextView description = this.findViewById(R.id.description_editTextTextMultiLine);
+    RadioGroup priority = this.findViewById(R.id.priority_toolbar_radioGroup);
     RadioButton priorityValue = this.findViewById(priority.getCheckedRadioButtonId());
-    TextView date             = this.findViewById(R.id.date_toolbar_textView);
+    TextView date = this.findViewById(R.id.date_toolbar_textView);
 
     // Set fields on a new `Task` instance.
     Task task = new Task()
@@ -107,7 +107,7 @@ public class TaskEditActivity extends AppCompatActivity {
     // Parse the `date` text
     try {
       calendar.setTime(formatter.parse(date.getText().toString()));
-    } catch(ParseException e) {
+    } catch (ParseException e) {
       return null;
     }
 
