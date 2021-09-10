@@ -77,26 +77,17 @@ public class TaskEditActivity extends AppCompatActivity {
       || super.onSupportNavigateUp();
   }
 
-  public void showDebugWindow() {
+  private void showDebugWindow() {
     // Find all relevant views
     TextView description      = this.findViewById(R.id.description_editTextTextMultiLine);
     RadioGroup priority       = this.findViewById(R.id.priority_toolbar_radioGroup);
     RadioButton priorityValue = this.findViewById(priority.getCheckedRadioButtonId());
     TextView date             = this.findViewById(R.id.date_toolbar_textView);
 
-    // Parse the `date` text
-    Calendar calendar = Calendar.getInstance();
-    SimpleDateFormat formatter = new SimpleDateFormat("EEE MMM dd HH:mm:ss z yyyy", Locale.ENGLISH);
-    try {
-      calendar.setTime(formatter.parse(date.getText().toString()));
-    } catch(ParseException e) {
-      calendar.setTime(new Date());
-    }
-
     // Set fields on a new `Task` instance.
     Task task = new Task()
-      // FIXME: date should be set to null properly
-      .setDue(calendar.getTime())
+      .setId(1)
+      .setDue(parseDate(date))
       .setPriority(priorityValue != null ? Priority.from(priorityValue.getText().toString()) : Priority.NONE)
       .setDescription(description.getText().toString());
 
@@ -107,5 +98,19 @@ public class TaskEditActivity extends AppCompatActivity {
       .setNegativeButton(android.R.string.no, null)
       .setIcon(android.R.drawable.ic_dialog_alert)
       .show();
+  }
+
+  private Date parseDate(TextView date) {
+    Calendar calendar = Calendar.getInstance();
+    SimpleDateFormat formatter = new SimpleDateFormat("EEE MMM dd HH:mm:ss z yyyy", Locale.ENGLISH);
+
+    // Parse the `date` text
+    try {
+      calendar.setTime(formatter.parse(date.getText().toString()));
+    } catch(ParseException e) {
+      return null;
+    }
+
+    return calendar.getTime();
   }
 }

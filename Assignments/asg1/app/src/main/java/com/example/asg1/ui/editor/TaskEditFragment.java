@@ -63,10 +63,16 @@ public class TaskEditFragment extends Fragment {
 
     // Set a custom on change event listener that adds to the fragment's history
     binding.priorityToolbarRadioGroup.setOnCheckedChangeListener((radioGroup, id) -> {
+      // Grab the currently checked radio button
       RadioButton radioButton = radioGroup.findViewById(radioGroup.getCheckedRadioButtonId());
+
+      // Ensure it's checked and non-null
       if (radioButton != null && radioButton.isChecked()) {
-        Log.d("[setOnCheckedChangeListener]", PRIORITY_RADIO_BUTTON_ID_MAP.get(radioButton.getId()).toString());
-        addTask(getCurrentTask().setPriority(PRIORITY_RADIO_BUTTON_ID_MAP.get(radioButton.getId())));
+        Priority priority = PRIORITY_RADIO_BUTTON_ID_MAP.get(radioButton.getId());
+        Log.d("[setOnCheckedChangeListener]", priority.toString());
+        // Only add to the history if the current priority isn't equal to the last
+        if (getCurrentTask().getPriority() != priority)
+          addTask(getCurrentTask().setPriority(priority));
       }
     });
   }
@@ -76,8 +82,6 @@ public class TaskEditFragment extends Fragment {
     super.onDestroyView();
     binding = null;
   }
-
-  //region Date
 
   private void chooseDate() {
     // Disable the date image button
@@ -134,10 +138,6 @@ public class TaskEditFragment extends Fragment {
     addTask(getCurrentTask().setDue(null));
   }
 
-  //endregion
-
-  //region Priority
-
   private void choosePriority() {
     // Disable the priority image button
     binding.priorityImageButton.setEnabled(false);
@@ -165,12 +165,8 @@ public class TaskEditFragment extends Fragment {
     hidePriority();
 
     // Add to the history
-    addTask(getCurrentTask().setPriority(null));
+    addTask(getCurrentTask().setPriority(Priority.NONE));
   }
-
-  //endregion
-
-  //region Description
 
   private TextWatcher onTextChanged() {
     return new TextWatcher() {
@@ -187,59 +183,48 @@ public class TaskEditFragment extends Fragment {
     };
   }
 
-  //endregion
-
-  //region Undo
-
   private void undo() {
     Log.d("[undo]", history.toString());
 
-    // If the history is empty do nothing.
-    if (history.isEmpty())
-      return;
-
-    // Compare the current task with the previous and change
-    // the corresponding UI component accordingly.
-    Task current  = history.pop();
-    Task previous = !history.isEmpty() ? history.pop() : new Task().setDescription("").setDue(null).setPriority(null);
-
-    if (current.getDescription() != previous.getDescription())
-      binding.descriptionEditTextTextMultiLine.setText(previous.getDescription());
-
-    if (current.getDue() != previous.getDue()) {
-      // If the current due date is null and the previous one
-      // is set, make sure the date toolbar is shown.
-      if (current.getDue() == null && previous.getDue() != null) {
-        binding.dateToolbarLayout.setVisibility(View.VISIBLE);
-        binding.dateToolbarTextView.setText(previous.getDue().toString());
-      }
-      // If the previous due date is null, hide the toolbar.
-      else if (previous.getDue() == null)
-        hideDate();
-      // Set the date text to the previous one
-      else
-        binding.dateToolbarTextView.setText(previous.getDue().toString());
+    // If there's no previous task, hide everything
+    if (history.size() < 2) {
+      binding.descriptionEditTextTextMultiLine.setText("");
+      hideDate();
+      hidePriority();
     }
 
-    if (current.getPriority() != previous.getPriority()) {
-      // If the current priority is null and the previous one
-      // is set, make sure the priority toolbar is shown.
-      if (current.getPriority() == null && previous.getPriority() != null) {
-        binding.priorityToolbarLayout.setVisibility(View.VISIBLE);
-        checkPriority(previous.getPriority());
-      }
-      // If the previous priority is null, hide the toolbar.
-      else if (previous.getPriority() == null)
-        hidePriority();
-      // Check the corresponding radio button (high, medium or low)
-      else
-        checkPriority(previous.getPriority());
+    // Grab the previous task
+    Task prev = getPreviousTask();
+
+    // Set the description
+    binding.descriptionEditTextTextMultiLine.setText(prev.getDescription());
+
+    // If the current due date is null and the previous one
+    // is set, make sure the date toolbar is shown.
+    if (prev.getDue() != null && binding.dateToolbarLayout.getVisibility() == View.GONE) {
+      binding.dateToolbarLayout.setVisibility(View.VISIBLE);
+      binding.dateToolbarTextView.setText(prev.getDue().toString());
     }
+    // If the previous due date is null, hide the toolbar.
+    else if (prev.getDue() == null)
+      hideDate();
+    // Set the date text to the previous one
+    else
+      binding.dateToolbarTextView.setText(prev.getDue().toString());
+
+    // If the current priority is null and the previous one
+    // is set, make sure the priority toolbar is shown.
+    if (prev.getPriority() != Priority.NONE && binding.priorityToolbarLayout.getVisibility() == View.GONE) {
+      binding.priorityToolbarLayout.setVisibility(View.VISIBLE);
+      checkPriority(prev.getPriority());
+    }
+    // If the previous priority is null, hide the toolbar.
+    else if (prev.getPriority() == Priority.NONE)
+      hidePriority();
+    // Check the corresponding radio button (high, medium or low)
+    else
+      checkPriority(prev.getPriority());
   }
-
-  //endregion
-
-  //region Utilities
 
   private Date getDateSelection() {
     // Grab the current date selection as a string
@@ -280,12 +265,15 @@ public class TaskEditFragment extends Fragment {
     // If there's no history then no
     // there is no current `Task` instance.
     if (history.isEmpty())
-      return new Task().setDescription("").setDue(null).setPriority(null);
+      return new Task();
 
     // The current task is at the top of the stack
-    Task current = history.peek().copy();
-    current.setId(current.getId() + 1);
-    return current;
+    return history.peek().copy();
+  }
+
+  public Task getPreviousTask() {
+    history.pop();
+    return history.pop();
   }
 
   public void addTask(Task task) {
@@ -293,6 +281,4 @@ public class TaskEditFragment extends Fragment {
     // Push a new task onto the history
     history.push(task);
   }
-
-  //endregion
 }
