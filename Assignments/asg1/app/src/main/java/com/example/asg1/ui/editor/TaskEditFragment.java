@@ -36,6 +36,9 @@ public class TaskEditFragment extends Fragment {
   // History stack
   private Stack<Task> history;
 
+  // The task to manipulate in memory
+  private Task task;
+
   // Map radio button ID's -> priority variants
   private HashMap<Integer, Priority> PRIORITY_RADIO_BUTTON_ID_MAP = new HashMap() {{
     put(R.id.priority_high_radioButton,   Priority.HIGH);
@@ -49,6 +52,8 @@ public class TaskEditFragment extends Fragment {
 
     // Initialize the task history stack
     history = new Stack();
+    task    = new Task();
+    history.add(task);
 
     // Set option menu for the checkbox
     setHasOptionsMenu(true);
@@ -280,7 +285,7 @@ public class TaskEditFragment extends Fragment {
     // If there's no history then no
     // there is no current `Task` instance.
     if (history.isEmpty())
-      return new Task();
+      return task;
 
     // The current task is at the top of the stack
     return history.peek().copy();
@@ -290,7 +295,10 @@ public class TaskEditFragment extends Fragment {
     // The task on top of the stack is the current one,
     // pop it off and return the one under it.
     history.pop();
-    return history.pop();
+
+    // Keep the current task in sync with the history
+    task = history.pop();
+    return task;
   }
 
   public void addTask(Task task) {
