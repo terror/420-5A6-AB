@@ -1,12 +1,17 @@
 package com.example.asg1.ui.editor;
 
+import android.app.AlertDialog;
 import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.CheckBox;
 import android.widget.RadioButton;
+import android.widget.RadioGroup;
 import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
 import com.example.asg1.R;
@@ -33,19 +38,41 @@ public class TaskEditFragment extends Fragment {
 
   // Map radio button ID's -> priority variants
   private HashMap<Integer, Priority> PRIORITY_RADIO_BUTTON_ID_MAP = new HashMap() {{
-    put(R.id.priority_high_radioButton, Priority.HIGH);
+    put(R.id.priority_high_radioButton,   Priority.HIGH);
     put(R.id.priority_medium_radioButton, Priority.MEDIUM);
-    put(R.id.priority_low_radioButton, Priority.LOW);
+    put(R.id.priority_low_radioButton,    Priority.LOW);
   }};
 
   @Override
   public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
     binding = FragmentTaskEditBinding.inflate(inflater, container, false);
 
-    // Initialize the task change history stack
+    // Initialize the task history stack
     history = new Stack();
 
+    // Set option menu for the checkbox
+    setHasOptionsMenu(true);
+
     return binding.getRoot();
+  }
+
+  @Override
+  public void onCreateOptionsMenu(final Menu menu, MenuInflater inflater) {
+    // Inflate the menu; this adds items to the action bar if it is present.
+    inflater.inflate(R.menu.menu_task_edit, menu);
+
+    // Grab the app bar's `CheckBox` by ID.
+    CheckBox checkBox = (CheckBox)
+      menu
+        .findItem(R.id.app_bar_checkbox)
+        .getActionView();
+
+    // Set an onCheckedChange listener to the app bar's checkbox
+    // displaying the debug window if it is checked.
+    checkBox.setOnCheckedChangeListener((compoundButton, isChecked) -> {
+      if (isChecked)
+        displayTask();
+    });
   }
 
   public void onViewCreated(@NonNull View view, Bundle savedInstanceState) {
@@ -55,23 +82,11 @@ public class TaskEditFragment extends Fragment {
     binding.dateImageButton.setOnClickListener(_view -> chooseDate());
     binding.dateToolbar.setOnClickListener(_view -> editDate());
     binding.dateToolbarClose.setOnClickListener(_view -> closeDate());
-    binding.descriptionEditTextTextMultiLine.addTextChangedListener(onTextChanged());
+    binding.descriptionEditTextTextMultiLine.addTextChangedListener(onDescriptionTextChanged());
     binding.priorityCloseImageButton.setOnClickListener(_view -> closePriority());
     binding.priorityImageButton.setOnClickListener(_view -> choosePriority());
+    binding.priorityToolbarRadioGroup.setOnCheckedChangeListener((radioGroup, id) -> changePriority(radioGroup));
     binding.undoImageButton.setOnClickListener(_view -> undo());
-
-    // Set a custom on change event listener that adds to the fragment's history
-    binding.priorityToolbarRadioGroup.setOnCheckedChangeListener((radioGroup, id) -> {
-      // Grab the currently checked radio button
-      RadioButton radioButton = radioGroup.findViewById(radioGroup.getCheckedRadioButtonId());
-      // Ensure it's checked and non-null
-      if (radioButton != null && radioButton.isChecked()) {
-        Priority priority = PRIORITY_RADIO_BUTTON_ID_MAP.get(radioButton.getId());
-        // Only add to the history if the current priority isn't equal to the last
-        if (getCurrentTask().getPriority() != priority)
-          addTask(getCurrentTask().setPriority(priority));
-      }
-    });
   }
 
   @Override
@@ -142,6 +157,19 @@ public class TaskEditFragment extends Fragment {
     binding.priorityToolbarRadioGroup.check(R.id.priority_high_radioButton);
   }
 
+  private void changePriority(RadioGroup group) {
+    // Grab the currently checked radio button
+    RadioButton radioButton = group.findViewById(group.getCheckedRadioButtonId());
+
+    // Ensure it's checked and non-null
+    if (radioButton != null && radioButton.isChecked()) {
+      Priority priority = PRIORITY_RADIO_BUTTON_ID_MAP.get(radioButton.getId());
+      // Only add to the history if the current priority isn't equal to the last
+      if (getCurrentTask().getPriority() != priority)
+        addTask(getCurrentTask().setPriority(priority));
+    }
+  }
+
   private void hidePriority() {
     // Enable the priority image button
     binding.priorityImageButton.setEnabled(true);
@@ -161,7 +189,7 @@ public class TaskEditFragment extends Fragment {
     addTask(getCurrentTask().setPriority(Priority.NONE));
   }
 
-  private TextWatcher onTextChanged() {
+  private TextWatcher onDescriptionTextChanged() {
     return new TextWatcher() {
       @Override
       public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
@@ -188,7 +216,8 @@ public class TaskEditFragment extends Fragment {
     Task prev = getPreviousTask();
 
     // Set the description
-    binding.descriptionEditTextTextMultiLine.setText(prev.getDescription());
+    if (prev.getDescription() != binding.descriptionEditTextTextMultiLine.getText().toString())
+      binding.descriptionEditTextTextMultiLine.setText(prev.getDescription());
 
     // If the current due date is null and the previous one
     // is set, make sure the date toolbar is shown.
@@ -197,11 +226,13 @@ public class TaskEditFragment extends Fragment {
       binding.dateToolbarTextView.setText(prev.getDue().toString());
     }
     // If the previous due date is null, hide the toolbar.
-    else if (prev.getDue() == null)
+    else if (prev.getDue() == null) {
       hideDate();
-      // Set the date text to the previous one
-    else
+    }
+    // Set the date text to the previous one
+    else {
       binding.dateToolbarTextView.setText(prev.getDue().toString());
+    }
 
     // If the current priority is null and the previous one
     // is set, make sure the priority toolbar is shown.
@@ -210,11 +241,13 @@ public class TaskEditFragment extends Fragment {
       checkPriority(prev.getPriority());
     }
     // If the previous priority is null, hide the toolbar.
-    else if (prev.getPriority() == Priority.NONE)
+    else if (prev.getPriority() == Priority.NONE) {
       hidePriority();
-      // Check the corresponding radio button (high, medium or low)
-    else
+    }
+    // Check the corresponding radio button (high, medium or low)
+    else {
       checkPriority(prev.getPriority());
+    }
   }
 
   private Date getDateSelection() {
@@ -263,5 +296,16 @@ public class TaskEditFragment extends Fragment {
   public void addTask(Task task) {
     // Push a new task onto the history
     history.push(task);
+  }
+
+  private void displayTask() {
+    // Display the current `Task` instance in a debug window.
+    new AlertDialog.Builder(getContext())
+      .setTitle("Debug")
+      .setMessage(getCurrentTask().toString())
+      .setNegativeButton(android.R.string.ok, null)
+      .setNegativeButton(android.R.string.cancel, null)
+      .setIcon(android.R.drawable.ic_dialog_alert)
+      .show();
   }
 }
