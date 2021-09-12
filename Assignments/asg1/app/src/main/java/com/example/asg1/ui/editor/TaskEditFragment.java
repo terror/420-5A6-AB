@@ -18,7 +18,6 @@ import com.example.asg1.R;
 import com.example.asg1.databinding.FragmentTaskEditBinding;
 import com.example.asg1.model.Priority;
 import com.example.asg1.model.Task;
-import com.example.asg1.ui.handlers.DatePickerDialogOnSetDateHandler;
 import com.example.asg1.ui.util.DatePickerDialogFragment;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -119,6 +118,19 @@ public class TaskEditFragment extends Fragment {
   }
 
   public void displayDate(Calendar calendar) {
+    // Validate the chosen date
+    if (calendar.getTime().before(new Date())) {
+      // Display a new alert dialog is the selected date
+      // is before the current date
+      new AlertDialog.Builder(getContext())
+        .setTitle("Invalid due date")
+        .setMessage("Please select a date in the future.")
+        .setNegativeButton(android.R.string.ok, null)
+        .setIcon(android.R.drawable.ic_dialog_alert)
+        .show();
+     return;
+    }
+
     // Disable the date image button
     binding.dateImageButton.setEnabled(false);
 
@@ -215,6 +227,7 @@ public class TaskEditFragment extends Fragment {
       binding.descriptionEditTextTextMultiLine.setText("");
       hideDate();
       hidePriority();
+      return;
     }
 
     // Grab the previous task
@@ -282,8 +295,8 @@ public class TaskEditFragment extends Fragment {
   }
 
   public Task getCurrentTask() {
-    // If there's no history then no
-    // there is no current `Task` instance.
+    // If there's no history then
+    // return the `Task` instance on this.
     if (history.isEmpty())
       return task;
 
@@ -293,10 +306,9 @@ public class TaskEditFragment extends Fragment {
 
   public Task getPreviousTask() {
     // The task on top of the stack is the current one,
-    // pop it off and return the one under it.
+    // pop it off and return the one under it while keeping the
+    // current task in sync.
     history.pop();
-
-    // Keep the current task in sync with the history
     task = history.pop();
     return task;
   }
