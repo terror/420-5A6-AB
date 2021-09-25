@@ -9,7 +9,10 @@ import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import com.example.asg2.R;
+import com.example.asg2.model.Task;
 import com.example.asg2.model.TaskData;
+import java.util.Collections;
+import java.util.List;
 
 /**
  * A fragment representing a list of Items.
@@ -23,8 +26,7 @@ public class TaskListFragment extends Fragment {
    * Mandatory empty constructor for the fragment manager to instantiate the
    * fragment (e.g. upon screen orientation changes).
    */
-  public TaskListFragment() {
-  }
+  public TaskListFragment() {}
 
   // TODO: Customize parameter initialization
   @SuppressWarnings("unused")
@@ -52,12 +54,18 @@ public class TaskListFragment extends Fragment {
       false
     );
 
-    // Set the adapter
+    // Grab the recycler view from layout
     recyclerView = view.findViewById(R.id.list);
+
+    // Account for `mColumnCount`
     if (mColumnCount <= 1)
       recyclerView.setLayoutManager(new LinearLayoutManager(view.getContext()));
     else recyclerView.setLayoutManager(new GridLayoutManager(view.getContext(), mColumnCount));
-    recyclerView.setAdapter(new TaskRecyclerViewAdapter(TaskData.getData()));
+
+    // Set the adapter
+    List<Task> tasks = TaskData.getData();
+    Collections.sort(tasks, Collections.reverseOrder());
+    recyclerView.setAdapter(new TaskRecyclerViewAdapter(tasks));
 
     return view;
   }

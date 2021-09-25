@@ -2,6 +2,7 @@ package com.example.asg2.model;
 
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
@@ -14,15 +15,23 @@ import java.util.UUID;
  * <p>
  * A more detailed description of the fields can be found at https://taskwarrior.org/docs/design/task.html
  */
-public class Task {
+public class Task implements Comparable<Task> {
   // generate local IDs (in memory only).
   private static int CURRENT_LOCAL_ID = 0;
+
+  // used for urgency calculation
+  private HashMap<Priority, Double> urgencyMap = new HashMap() {{
+    put(Priority.NONE,   0.0);
+    put(Priority.LOW,    1.8);
+    put(Priority.MEDIUM, 3.9);
+    put(Priority.HIGH,   6.0);
+  }};
 
   // Identifying tasks
   private int id;
   private UUID uuid;  // UUID
 
-  // The decription of the task.
+  // The description of the task.
   private String description;
 
   // Basic features of the task
@@ -55,7 +64,10 @@ public class Task {
   private String depends;
 
   // Computed value of the task's urgency.
-  private double urgency;
+  private Double urgency;
+
+  // Trash
+  private boolean trash;
 
   /**
    * Create a blank task.
@@ -87,7 +99,6 @@ public class Task {
     tags = new ArrayList<>();
     annotations = new ArrayList<>();
   }
-
 
   public int getId() {
     return id;
@@ -163,6 +174,10 @@ public class Task {
 
   public Date getEnd() {
     return end;
+  }
+
+  public boolean getTrash() {
+    return trash;
   }
 
   public Task setEnd(Date end) {
@@ -269,12 +284,17 @@ public class Task {
     return this;
   }
 
-  public double getUrgency() {
+  public Double getUrgency() {
     return urgency;
   }
 
   public Task setUrgency(double urgency) {
     this.urgency = urgency;
+    return this;
+  }
+
+  public Task setTrash(boolean trash) {
+    this.trash = trash;
     return this;
   }
 
@@ -287,9 +307,32 @@ public class Task {
     return this;
   }
 
-  public double calculateUrgency() {
-    // TODO
-    return 1;
+  public Double calculateUrgency() {
+    if (getStatus() == Status.COMPLETED) {
+      setUrgency(0);
+      return 0.0;
+    }
+
+    Double ret = 0.0;
+
+    // account for overdue
+    if (isOverdue())
+      ret += 12.0;
+
+    // account for tags
+    if (getTags().size() != 0)
+      ret += 1.0;
+
+    // account for priority
+    if (getPriority() != null)
+     ret += urgencyMap.get(getPriority());
+
+    setUrgency(ret);
+    return ret;
+  }
+
+  public boolean isOverdue() {
+    return true;
   }
 
   @Override
@@ -384,5 +427,19 @@ public class Task {
       ", urgency=" + urgency +
       ", annotations=" + annotations +
       '}';
+  }
+
+  @Override
+  public int compareTo(Task o) {
+    // first check for completion status
+    if (getStatus() == Status.COMPLETED && o.getStatus() == Status.COMPLETED)
+      return 0;
+    if (getStatus() == Status.COMPLETED)
+      return -1;
+    if (o.getStatus() == Status.COMPLETED)
+      return 1;
+
+    // if both tasks are not completed, compare urgencies
+    return this.calculateUrgency().compareTo(o.calculateUrgency());
   }
 }
