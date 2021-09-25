@@ -287,6 +287,11 @@ public class Task {
     return this;
   }
 
+  public double calculateUrgency() {
+    // TODO
+    return 1;
+  }
+
   @Override
   public boolean equals(Object o) {
     if (this == o) return true;
