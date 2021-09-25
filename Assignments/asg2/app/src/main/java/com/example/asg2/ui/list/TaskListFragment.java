@@ -1,6 +1,5 @@
 package com.example.asg2.ui.list;
 
-import android.content.Context;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -16,16 +15,16 @@ import com.example.asg2.model.TaskData;
  * A fragment representing a list of Items.
  */
 public class TaskListFragment extends Fragment {
-  // TODO: Customize parameter argument names
   private static final String ARG_COLUMN_COUNT = "column-count";
-  // TODO: Customize parameters
   private int mColumnCount = 1;
+  private RecyclerView recyclerView;
 
   /**
    * Mandatory empty constructor for the fragment manager to instantiate the
    * fragment (e.g. upon screen orientation changes).
    */
-  public TaskListFragment() {}
+  public TaskListFragment() {
+  }
 
   // TODO: Customize parameter initialization
   @SuppressWarnings("unused")
@@ -54,17 +53,11 @@ public class TaskListFragment extends Fragment {
     );
 
     // Set the adapter
-    if (view instanceof RecyclerView) {
-      Context context = view.getContext();
-      RecyclerView recyclerView = (RecyclerView) view;
-
-      if (mColumnCount <= 1)
-        recyclerView.setLayoutManager(new LinearLayoutManager(context));
-      else
-        recyclerView.setLayoutManager(new GridLayoutManager(context, mColumnCount));
-
-      recyclerView.setAdapter(new TaskRecyclerViewAdapter(TaskData.getData()));
-    }
+    recyclerView = view.findViewById(R.id.list);
+    if (mColumnCount <= 1)
+      recyclerView.setLayoutManager(new LinearLayoutManager(view.getContext()));
+    else recyclerView.setLayoutManager(new GridLayoutManager(view.getContext(), mColumnCount));
+    recyclerView.setAdapter(new TaskRecyclerViewAdapter(TaskData.getData()));
 
     return view;
   }

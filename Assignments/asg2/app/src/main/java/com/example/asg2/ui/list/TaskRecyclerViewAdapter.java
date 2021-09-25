@@ -16,7 +16,6 @@ import java.util.List;
  * TODO: Replace the implementation with code for your data type.
  */
 public class TaskRecyclerViewAdapter extends RecyclerView.Adapter<TaskRecyclerViewAdapter.ViewHolder> {
-
   private final List<Task> mValues;
 
   public TaskRecyclerViewAdapter(List<Task> items) {
@@ -25,7 +24,13 @@ public class TaskRecyclerViewAdapter extends RecyclerView.Adapter<TaskRecyclerVi
 
   @Override
   public ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
-    return new ViewHolder(ListItemTaskBinding.inflate(LayoutInflater.from(parent.getContext()), parent, false));
+    return new ViewHolder(
+      ListItemTaskBinding.inflate(
+        LayoutInflater.from(parent.getContext()),
+        parent,
+        false
+      )
+    );
   }
 
   @Override
@@ -43,10 +48,10 @@ public class TaskRecyclerViewAdapter extends RecyclerView.Adapter<TaskRecyclerVi
     private Task mItem;
 
     private HashMap<Priority, Integer> colorMap = new HashMap() {{
-      put(Priority.HIGH, Color.RED);
+      put(Priority.HIGH,   Color.RED);
       put(Priority.MEDIUM, Color.rgb(255, 165, 0));
-      put(Priority.LOW, Color.YELLOW);
-      put(Priority.NONE, Color.WHITE);
+      put(Priority.LOW,    Color.YELLOW);
+      put(Priority.NONE,   Color.WHITE);
     }};
 
     public ViewHolder(ListItemTaskBinding binding) {
