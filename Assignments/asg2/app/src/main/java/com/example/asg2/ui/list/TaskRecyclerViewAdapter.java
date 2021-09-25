@@ -1,10 +1,13 @@
 package com.example.asg2.ui.list;
 
 import android.graphics.Color;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import androidx.recyclerview.widget.RecyclerView;
+import com.example.asg2.databinding.FragmentTaskListBinding;
 import com.example.asg2.databinding.ListItemTaskBinding;
 import com.example.asg2.model.Priority;
 import com.example.asg2.model.Status;
@@ -12,16 +15,35 @@ import com.example.asg2.model.Task;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
+import java.util.function.Predicate;
+import java.util.stream.Collectors;
 
 /**
  * {@link RecyclerView.Adapter} that can display a {@link Task}.
  * TODO: Replace the implementation with code for your data type.
  */
 public class TaskRecyclerViewAdapter extends RecyclerView.Adapter<TaskRecyclerViewAdapter.ViewHolder> {
-  private final List<Task> tasks;
+  // original task list
+  private final List<Task> originalTasks;
 
-  public TaskRecyclerViewAdapter(List<Task> items) {
-    tasks = items;
+  // list that can be filtered through `filter`
+  private List<Task> tasks;
+
+  // generated binding
+  private FragmentTaskListBinding fragmentBinding;
+
+  public TaskRecyclerViewAdapter(List<Task> tasks, FragmentTaskListBinding fragmentBinding) {
+    this.fragmentBinding = fragmentBinding;
+
+    // set event listeners on the fragment
+    fragmentBinding.listFilterEditText.addTextChangedListener(filter());
+
+    // create a new list based on `tasks` as the original list
+    this.originalTasks = tasks;
+
+    // set the filterable list
+    this.tasks = tasks;
   }
 
   @Override
@@ -38,6 +60,48 @@ public class TaskRecyclerViewAdapter extends RecyclerView.Adapter<TaskRecyclerVi
   @Override
   public int getItemCount() {
     return tasks.size();
+  }
+
+  public void sort(Task task) {
+    // if this task was deleted, remove it
+    // from `tasks`
+    if (task.getTrash())
+      tasks.remove(task);
+
+    // sort `tasks` in reverse order
+    Collections.sort(tasks, Collections.reverseOrder());
+
+    // notify the ui
+    notifyDataSetChanged();
+  }
+
+  public TextWatcher filter() {
+    return new TextWatcher() {
+      @Override
+      public void beforeTextChanged(CharSequence charSequence, int start, int count, int after) {}
+
+      @Override
+      public void onTextChanged(CharSequence query, int start, int before, int after) {
+        // condition predicate
+        Predicate<Task> containsQuery = task ->
+          task
+            .getDescription()
+            .toLowerCase(Locale.ROOT)
+            .contains(query.toString());
+
+        // filter the list
+        tasks = originalTasks
+          .stream()
+          .filter(containsQuery)
+          .collect(Collectors.toList());
+
+        // notify the ui
+        notifyDataSetChanged();
+      }
+
+      @Override
+      public void afterTextChanged(Editable editable) {}
+    };
   }
 
   public class ViewHolder extends RecyclerView.ViewHolder {
@@ -88,7 +152,7 @@ public class TaskRecyclerViewAdapter extends RecyclerView.Adapter<TaskRecyclerVi
       TaskListBottomSheet sheet = new TaskListBottomSheet(view.getContext(), task);
 
       // sort and refresh the UI upon dismiss
-      sheet.setOnDismissListener(_view -> sort());
+      sheet.setOnDismissListener(_view -> sort(task));
 
       // show the bottom sheet dialog
       sheet.show();
@@ -97,21 +161,8 @@ public class TaskRecyclerViewAdapter extends RecyclerView.Adapter<TaskRecyclerVi
     public void completeTask(boolean isChecked) {
       if (isChecked) {
         task.setStatus(Status.COMPLETED);
-        sort();
+        sort(task);
       }
-    }
-
-    public void sort() {
-      // if this task was deleted, remove it
-      // from `tasks`
-      if (task.getTrash())
-        tasks.remove(task);
-
-      // sort `tasks` in reverse order
-      Collections.sort(tasks, Collections.reverseOrder());
-
-      // notify the ui
-      notifyDataSetChanged();
     }
   }
 }

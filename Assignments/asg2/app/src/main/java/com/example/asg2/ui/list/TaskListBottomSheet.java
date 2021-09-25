@@ -32,12 +32,17 @@ public class TaskListBottomSheet extends BottomSheetDialog {
 
   private void changePriority() {
     // it's already at the highest priority
-    if (task.getPriority() == Priority.HIGH)
+    if (task.getPriority() == Priority.HIGH) {
+      dismiss();
       return;
+    }
 
     // account for the `null` case
-    if (task.getPriority() == null)
+    if (task.getPriority() == null) {
       task.setPriority(Priority.LOW);
+      dismiss();
+      return;
+    }
 
     // map priority -> priority + 1
     HashMap<Priority, Priority> levels = new HashMap() {{
