@@ -10,4 +10,9 @@ public enum Priority {
   LOW,
   MEDIUM,
   HIGH;
+
+  public static Priority from(int x) {
+    Priority[] values = values();
+    return values[x % values.length];
+  }
 }

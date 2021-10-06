@@ -44,15 +44,8 @@ public class TaskListBottomSheet extends BottomSheetDialog {
       return;
     }
 
-    // map priority -> priority + 1
-    HashMap<Priority, Priority> levels = new HashMap() {{
-      put(Priority.MEDIUM, Priority.HIGH);
-      put(Priority.LOW, Priority.MEDIUM);
-      put(Priority.NONE, Priority.LOW);
-    }};
-
     // set the appropriate priority
-    task.setPriority(levels.get(task.getPriority()));
+    task.setPriority(Priority.from(task.getPriority().ordinal() + 1));
 
     // dismiss the dialog
     dismiss();

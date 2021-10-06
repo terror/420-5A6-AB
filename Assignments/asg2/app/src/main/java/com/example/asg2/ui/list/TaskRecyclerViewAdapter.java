@@ -12,6 +12,7 @@ import com.example.asg2.databinding.ListItemTaskBinding;
 import com.example.asg2.model.Priority;
 import com.example.asg2.model.Status;
 import com.example.asg2.model.Task;
+import java.text.SimpleDateFormat;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -138,7 +139,7 @@ public class TaskRecyclerViewAdapter extends RecyclerView.Adapter<TaskRecyclerVi
 
       // set the task item date
       if (task.getDue() != null)
-        binding.date.setText(task.getDue().toString());
+        binding.date.setText(new SimpleDateFormat("yyyy-MM-dd HH:mm").format(task.getDue()));
 
       // set the task item layout's color
       binding.taskItemLayout.setBackgroundColor(

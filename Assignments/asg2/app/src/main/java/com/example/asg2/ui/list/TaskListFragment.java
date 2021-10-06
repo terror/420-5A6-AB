@@ -64,7 +64,6 @@ public class TaskListFragment extends Fragment {
       recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
     else recyclerView.setLayoutManager(new GridLayoutManager(getContext(), mColumnCount));
 
-
     // Set the adapter
     List<Task> tasks = TaskData.getData();
     Collections.sort(tasks, Collections.reverseOrder());
@@ -78,12 +77,12 @@ public class TaskListFragment extends Fragment {
     super.onViewCreated(view, savedInstanceState);
 
     // set event listeners
-    binding.listToolbarSwitch.setOnCheckedChangeListener((button, checked) -> setGrid(view, checked));
+    binding.listToolbarSwitch.setOnCheckedChangeListener((button, checked) -> setGrid(checked));
   }
 
-  public void setGrid(View view, boolean isChecked) {
+  public void setGrid(boolean isChecked) {
     if (isChecked)
-      recyclerView.setLayoutManager(new GridLayoutManager(view.getContext(), 2));
-    else recyclerView.setLayoutManager(new LinearLayoutManager(view.getContext()));
+      recyclerView.setLayoutManager(new GridLayoutManager(getContext(), 2));
+    else recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
   }
 }
