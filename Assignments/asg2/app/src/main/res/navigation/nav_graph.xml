@@ -8,11 +8,11 @@
   <fragment
     android:id="@+id/taskEditFragment"
     android:name="com.example.asg2.ui.editor.TaskEditFragment"
-    android:label="@string/first_fragment_label"
-    tools:layout="@layout/fragment_task_edit"/>
+    android:label="Edit Task"
+    tools:layout="@layout/fragment_task_edit" />
   <fragment
     android:id="@+id/taskListFragment"
     android:name="com.example.asg2.ui.list.TaskListFragment"
-    android:label="fragment_task_list"
+    android:label="Tasks"
     tools:layout="@layout/fragment_task_list" />
 </navigation>

@@ -1,8 +1,8 @@
 package com.example.asg2.model;
 
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
@@ -18,14 +18,6 @@ import java.util.UUID;
 public class Task implements Comparable<Task> {
   // generate local IDs (in memory only).
   private static int CURRENT_LOCAL_ID = 0;
-
-  // used for urgency calculation
-  private HashMap<Priority, Double> urgencyMap = new HashMap() {{
-    put(Priority.NONE,   0.0);
-    put(Priority.LOW,    1.8);
-    put(Priority.MEDIUM, 3.9);
-    put(Priority.HIGH,   6.0);
-  }};
 
   // Identifying tasks
   private int id;
@@ -325,14 +317,22 @@ public class Task implements Comparable<Task> {
 
     // account for priority
     if (getPriority() != null)
-     ret += urgencyMap.get(getPriority());
+     ret += Priority.urgency(getPriority());
 
     setUrgency(ret);
     return ret;
   }
 
+  public boolean isCompleted() {
+    return getStatus() == Status.COMPLETED;
+  }
+
   public boolean isOverdue() {
-    return true;
+    Calendar curr = Calendar.getInstance();
+    curr.setTime(new Date());
+    if (getDue() != null)
+      return curr.getTime().after(getDue());
+    return false;
   }
 
   @Override
@@ -431,11 +431,15 @@ public class Task implements Comparable<Task> {
 
   @Override
   public int compareTo(Task o) {
-    // first check for completion status
+    // if they are both completed, they are equal
     if (getStatus() == Status.COMPLETED && o.getStatus() == Status.COMPLETED)
       return 0;
+
+    // if `this` is completed it ranks lower than `o`
     if (getStatus() == Status.COMPLETED)
       return -1;
+
+    // if `o` is completed it ranks lower than `this`
     if (o.getStatus() == Status.COMPLETED)
       return 1;
 

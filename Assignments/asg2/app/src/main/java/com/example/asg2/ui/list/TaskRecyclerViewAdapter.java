@@ -45,6 +45,9 @@ public class TaskRecyclerViewAdapter extends RecyclerView.Adapter<TaskRecyclerVi
 
     // set the filterable list
     this.tasks = tasks;
+
+    // indicates that each item can be represented with a unique id
+    setHasStableIds(true);
   }
 
   @Override
@@ -59,13 +62,22 @@ public class TaskRecyclerViewAdapter extends RecyclerView.Adapter<TaskRecyclerVi
   }
 
   @Override
+  public int getItemViewType(int position) {
+    return tasks.get(position).getId();
+  }
+
+  @Override
+  public long getItemId(int position) {
+    return tasks.get(position).getId();
+  }
+
+  @Override
   public int getItemCount() {
     return tasks.size();
   }
 
   public void sort(Task task) {
-    // if this task was deleted, remove it
-    // from `tasks`
+    // if this task was deleted, remove it from `tasks`
     if (task.getTrash())
       tasks.remove(task);
 
@@ -110,29 +122,29 @@ public class TaskRecyclerViewAdapter extends RecyclerView.Adapter<TaskRecyclerVi
     private Task task;
 
     private HashMap<Priority, Integer> colorMap = new HashMap() {{
-      put(Priority.HIGH, Color.RED);
+      put(Priority.HIGH,   Color.rgb(229, 28, 88));
       put(Priority.MEDIUM, Color.rgb(255, 165, 0));
-      put(Priority.LOW, Color.YELLOW);
-      put(Priority.NONE, Color.WHITE);
+      put(Priority.LOW,    Color.rgb(255, 255, 0));
+      put(Priority.NONE,   Color.rgb(220, 220, 220));
     }};
 
     public ViewHolder(ListItemTaskBinding binding) {
       super(binding.getRoot());
+
       this.binding = binding;
+
+      // set the on click listener for `edit`
+      binding.taskItemLayout.setOnClickListener(view -> editTask(view));
     }
 
     public void bind(Task task) {
       this.task = task;
 
-      // set the on click listener for `edit`
-      binding.taskItemLayout.setOnClickListener(view -> editTask(view));
-
       // set the on checked listener for `complete`
       // if the task is not completed
-      if (task.getStatus() == Status.COMPLETED)
-        binding.taskItemCheckBox.setEnabled(false);
-      else
-        binding.taskItemCheckBox.setOnCheckedChangeListener((button, isChecked) -> completeTask(isChecked));
+      if (task.isCompleted())
+        binding.taskItemCheckBox.setChecked(true);
+      binding.taskItemCheckBox.setOnCheckedChangeListener((button, isChecked) -> completeTask(isChecked));
 
       // set the task item description
       binding.description.setText(task.getDescription());
@@ -140,6 +152,10 @@ public class TaskRecyclerViewAdapter extends RecyclerView.Adapter<TaskRecyclerVi
       // set the task item date
       if (task.getDue() != null)
         binding.date.setText(new SimpleDateFormat("yyyy-MM-dd HH:mm").format(task.getDue()));
+
+      // if the task is overdue, set the date color to red
+      if (task.isOverdue() && !task.isCompleted())
+        binding.date.setTextColor(Color.RED);
 
       // set the task item layout's color
       binding.taskItemLayout.setBackgroundColor(
@@ -160,10 +176,16 @@ public class TaskRecyclerViewAdapter extends RecyclerView.Adapter<TaskRecyclerVi
     }
 
     public void completeTask(boolean isChecked) {
-      if (isChecked) {
+      // if the checkbox is not checked, set the status to pending
+      if (!isChecked) {
+        task.setStatus(Status.PENDING);
+      } else {
+        // set the task's status to completed
         task.setStatus(Status.COMPLETED);
-        sort(task);
       }
+
+      // resort the tasks list
+      sort(task);
     }
   }
 }
