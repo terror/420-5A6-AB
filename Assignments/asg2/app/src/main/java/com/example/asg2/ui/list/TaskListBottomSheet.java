@@ -7,7 +7,6 @@ import com.example.asg2.databinding.BottomSheetTaskListBinding;
 import com.example.asg2.model.Priority;
 import com.example.asg2.model.Task;
 import com.google.android.material.bottomsheet.BottomSheetDialog;
-import java.util.HashMap;
 
 public class TaskListBottomSheet extends BottomSheetDialog {
   private BottomSheetTaskListBinding binding;
@@ -31,6 +30,12 @@ public class TaskListBottomSheet extends BottomSheetDialog {
   }
 
   private void changePriority() {
+    // don't set the priority for completed tasks
+    if (task.isCompleted()) {
+      dismiss();
+      return;
+    }
+
     // it's already at the highest priority
     if (task.getPriority() == Priority.HIGH) {
       dismiss();

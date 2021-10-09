@@ -76,9 +76,9 @@ public class TaskRecyclerViewAdapter extends RecyclerView.Adapter<TaskRecyclerVi
     return tasks.size();
   }
 
-  public void sort(Task task) {
+  public void update(Task task) {
     // if this task was deleted, remove it from `tasks`
-    if (task.getTrash())
+    if (task != null && task.getTrash())
       tasks.remove(task);
 
     // sort `tasks` in reverse order
@@ -108,8 +108,8 @@ public class TaskRecyclerViewAdapter extends RecyclerView.Adapter<TaskRecyclerVi
           .filter(containsQuery)
           .collect(Collectors.toList());
 
-        // notify the ui
-        notifyDataSetChanged();
+        // update the ui
+        update(null);
       }
 
       @Override
@@ -140,10 +140,11 @@ public class TaskRecyclerViewAdapter extends RecyclerView.Adapter<TaskRecyclerVi
     public void bind(Task task) {
       this.task = task;
 
-      // set the on checked listener for `complete`
-      // if the task is not completed
+      // if the task is completed, set the checkbox to checked
       if (task.isCompleted())
         binding.taskItemCheckBox.setChecked(true);
+
+      // set the on checked listener for `complete`
       binding.taskItemCheckBox.setOnCheckedChangeListener((button, isChecked) -> completeTask(isChecked));
 
       // set the task item description
@@ -159,17 +160,18 @@ public class TaskRecyclerViewAdapter extends RecyclerView.Adapter<TaskRecyclerVi
 
       // set the task item layout's color
       binding.taskItemLayout.setBackgroundColor(
-        task.getStatus() == Status.COMPLETED ?
+        task.isCompleted() ?
           Color.GRAY :
           colorMap.get(task.getPriority())
       );
     }
 
     public void editTask(View view) {
+      // create a new `TaskListBottomSheet` instance with the current task
       TaskListBottomSheet sheet = new TaskListBottomSheet(view.getContext(), task);
 
       // sort and refresh the UI upon dismiss
-      sheet.setOnDismissListener(_view -> sort(task));
+      sheet.setOnDismissListener(_view -> update(task));
 
       // show the bottom sheet dialog
       sheet.show();
@@ -185,7 +187,7 @@ public class TaskRecyclerViewAdapter extends RecyclerView.Adapter<TaskRecyclerVi
       }
 
       // resort the tasks list
-      sort(task);
+      update(null);
     }
   }
 }
