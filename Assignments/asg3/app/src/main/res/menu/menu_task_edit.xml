@@ -1,0 +1,11 @@
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+  xmlns:app="http://schemas.android.com/apk/res-auto"
+  xmlns:tools="http://schemas.android.com/tools"
+  tools:context="com.example.asg3.ui.TasksActivity">
+
+  <item
+    android:id="@+id/app_bar_checkbox"
+    app:actionViewClass="android.widget.CheckBox"
+    android:title="CheckBox"
+    app:showAsAction="always"/>
+</menu>
