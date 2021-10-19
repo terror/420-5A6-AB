@@ -3,15 +3,19 @@ package com.example.asg3.ui.list;
 import android.graphics.Color;
 import android.text.Editable;
 import android.text.TextWatcher;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import androidx.recyclerview.widget.RecyclerView;
-import com.example.asg3.databinding.FragmentTaskListBinding;
+import com.example.asg3.R;
 import com.example.asg3.databinding.ListItemTaskBinding;
+import com.example.asg3.model.Action;
 import com.example.asg3.model.Priority;
 import com.example.asg3.model.Status;
 import com.example.asg3.model.Task;
+import com.example.asg3.ui.TasksActivity;
+import com.google.android.material.snackbar.Snackbar;
 import java.text.SimpleDateFormat;
 import java.util.Collections;
 import java.util.HashMap;
@@ -27,18 +31,14 @@ import java.util.stream.Collectors;
 public class TaskRecyclerViewAdapter extends RecyclerView.Adapter<TaskRecyclerViewAdapter.ViewHolder> {
   // original task list
   private final List<Task> originalTasks;
-
   // list that can be filtered through `filter`
   private List<Task> tasks;
+  // task list fragment
+  private TaskListFragment taskListFragment;
 
-  // generated binding
-  private FragmentTaskListBinding fragmentBinding;
-
-  public TaskRecyclerViewAdapter(List<Task> tasks, FragmentTaskListBinding fragmentBinding) {
-    this.fragmentBinding = fragmentBinding;
-
-    // set event listeners on the fragment
-    fragmentBinding.listFilterEditText.addTextChangedListener(filter());
+  public TaskRecyclerViewAdapter(List<Task> tasks, TaskListFragment taskListFragment) {
+    // set the fragment
+    this.taskListFragment = taskListFragment;
 
     // create a new list based on `tasks` as the original list
     this.originalTasks = tasks;
@@ -46,9 +46,19 @@ public class TaskRecyclerViewAdapter extends RecyclerView.Adapter<TaskRecyclerVi
     // set the filterable list
     this.tasks = tasks;
 
+    // set event listeners on the fragment
+    taskListFragment
+      .getBinding()
+      .listFilterEditText
+      .addTextChangedListener(filter());
+
     // indicates that each item can be represented with a unique id
     setHasStableIds(true);
   }
+
+  /*───────────────────────────────────────────────────────────────────────────│─╗
+  │ Overridden methods                                                       ─╬─│┼
+  ╚────────────────────────────────────────────────────────────────────────────│*/
 
   @Override
   public ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
@@ -76,7 +86,60 @@ public class TaskRecyclerViewAdapter extends RecyclerView.Adapter<TaskRecyclerVi
     return tasks.size();
   }
 
-  public void update(Task task) {
+  /*───────────────────────────────────────────────────────────────────────────│─╗
+  │ View handlers                                                            ─╬─│┼
+  ╚────────────────────────────────────────────────────────────────────────────│*/
+
+  public void handleAction(Action action, Task task, int changedId) {
+    // the saved previous task
+    Task prev = null;
+
+    // add a new task
+    if (action.equals(Action.ADD)) {
+      tasks.add(task);
+    } else {
+      // modify the task
+      for(int i = 0; i < tasks.size(); ++i) {
+        if (tasks.get(i).getId() == changedId) {
+          prev = tasks.get(i);
+          tasks.set(i, task);
+        }
+      }
+    }
+
+    // update the ui
+    update(null);
+
+    // create the snack bar
+    Snackbar snackbar = Snackbar.make(
+      taskListFragment.getActivity().findViewById(R.id.coordinatorLayout),
+      Action.message(action),
+      Snackbar.LENGTH_SHORT
+    );
+
+    Task finalPrev = prev;
+    // set event for `undo` button
+    snackbar.setAction("undo", _view -> {
+      // remove the added task
+      if (action.equals(Action.ADD)) {
+        tasks.remove(task);
+        // change back modified task
+      } else {
+        for(int i = 0; i < tasks.size(); ++i) {
+          if (tasks.get(i).getId() == task.getId())
+            tasks.set(i, finalPrev);
+        }
+      }
+
+      // update the ui
+      update(null);
+    });
+
+    // show the snack bar
+    snackbar.show();
+  }
+
+  private void update(Task task) {
     // if this task was deleted, remove it from `tasks`
     if (task != null && task.getTrash())
       tasks.remove(task);
@@ -88,7 +151,7 @@ public class TaskRecyclerViewAdapter extends RecyclerView.Adapter<TaskRecyclerVi
     notifyDataSetChanged();
   }
 
-  public TextWatcher filter() {
+  private TextWatcher filter() {
     return new TextWatcher() {
       @Override
       public void beforeTextChanged(CharSequence charSequence, int start, int count, int after) {}
@@ -117,6 +180,10 @@ public class TaskRecyclerViewAdapter extends RecyclerView.Adapter<TaskRecyclerVi
     };
   }
 
+  /*───────────────────────────────────────────────────────────────────────────│─╗
+  │ View holder                                                              ─╬─│┼
+  ╚────────────────────────────────────────────────────────────────────────────│*/
+
   public class ViewHolder extends RecyclerView.ViewHolder {
     private ListItemTaskBinding binding;
     private Task task;
@@ -134,7 +201,7 @@ public class TaskRecyclerViewAdapter extends RecyclerView.Adapter<TaskRecyclerVi
       this.binding = binding;
 
       // set the on click listener for `edit`
-      binding.taskItemLayout.setOnClickListener(view -> editTask(view));
+      binding.taskItemLayout.setOnClickListener(view -> editTaskBottomSheet(view));
     }
 
     public void bind(Task task) {
@@ -164,9 +231,12 @@ public class TaskRecyclerViewAdapter extends RecyclerView.Adapter<TaskRecyclerVi
           Color.GRAY :
           colorMap.get(task.getPriority())
       );
+
+      // set on long click listener
+      binding.taskItemLayout.setOnLongClickListener(_view -> editTaskFragment());
     }
 
-    public void editTask(View view) {
+    private void editTaskBottomSheet(View view) {
       // create a new `TaskListBottomSheet` instance with the current task
       TaskListBottomSheet sheet = new TaskListBottomSheet(view.getContext(), task);
 
@@ -177,7 +247,13 @@ public class TaskRecyclerViewAdapter extends RecyclerView.Adapter<TaskRecyclerVi
       sheet.show();
     }
 
-    public void completeTask(boolean isChecked) {
+    private boolean editTaskFragment() {
+      TasksActivity tasksActivity = (TasksActivity) taskListFragment.getActivity();
+      tasksActivity.handleEdit(task);
+      return true;
+    }
+
+    private void completeTask(boolean isChecked) {
       // if the checkbox is not checked, set the status to pending
       if (!isChecked) {
         task.setStatus(Status.PENDING);

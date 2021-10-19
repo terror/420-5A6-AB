@@ -1,6 +1,7 @@
 package com.example.asg3.ui.editor;
 
 import android.app.AlertDialog;
+import android.content.Context;
 import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;
@@ -16,9 +17,12 @@ import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
 import com.example.asg3.R;
 import com.example.asg3.databinding.FragmentTaskEditBinding;
+import com.example.asg3.model.Action;
 import com.example.asg3.model.Priority;
 import com.example.asg3.model.Task;
+import com.example.asg3.ui.TasksActivity;
 import com.example.asg3.ui.util.DatePickerDialogFragment;
+import com.example.asg3.viewmodel.TaskViewModel;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
@@ -31,13 +35,16 @@ import java.util.Stack;
 public class TaskEditFragment extends Fragment {
   // Generated fragment binding
   private FragmentTaskEditBinding binding;
-
+  // Activity reference
+  private TasksActivity tasksActivity;
   // History stack
   private Stack<Task> history;
-
   // The task to manipulate in memory
   private Task task;
-
+  // Current action to perform on back button pressed
+  private Action currentAction;
+  // Current ID of task being modified
+  private int currentId;
   // Map radio button ID's -> priority variants
   private HashMap<Integer, Priority> PRIORITY_RADIO_BUTTON_ID_MAP = new HashMap() {{
     put(R.id.priority_high_radioButton,   Priority.HIGH);
@@ -45,13 +52,24 @@ public class TaskEditFragment extends Fragment {
     put(R.id.priority_low_radioButton,    Priority.LOW);
   }};
 
+  /*───────────────────────────────────────────────────────────────────────────│─╗
+  │ Overridden methods                                                       ─╬─│┼
+  ╚────────────────────────────────────────────────────────────────────────────│*/
+
+  @Override
+  public void onAttach(@NonNull Context context) {
+    super.onAttach(context);
+    tasksActivity = (TasksActivity) context;
+    tasksActivity.setTaskEditFragment(this);
+  }
+
   @Override
   public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
     binding = FragmentTaskEditBinding.inflate(inflater, container, false);
 
     // Initialize the task history stack
     history = new Stack();
-    task    = new Task();
+    task = new Task();
     history.add(task);
 
     // Set option menu for the checkbox
@@ -79,10 +97,11 @@ public class TaskEditFragment extends Fragment {
     });
   }
 
+  @Override
   public void onViewCreated(@NonNull View view, Bundle savedInstanceState) {
     super.onViewCreated(view, savedInstanceState);
 
-    // Set all event listeners
+    // Set all ui event listeners
     binding.dateImageButton.setOnClickListener(_view -> chooseDate());
     binding.dateToolbar.setOnClickListener(_view -> editDate());
     binding.dateToolbarClose.setOnClickListener(_view -> closeDate());
@@ -91,6 +110,9 @@ public class TaskEditFragment extends Fragment {
     binding.priorityImageButton.setOnClickListener(_view -> choosePriority());
     binding.priorityToolbarRadioGroup.setOnCheckedChangeListener((radioGroup, id) -> changePriority(radioGroup));
     binding.undoImageButton.setOnClickListener(_view -> undo());
+
+    // Handle the current action
+    handleAction(tasksActivity.getTaskViewModel());
   }
 
   @Override
@@ -98,6 +120,10 @@ public class TaskEditFragment extends Fragment {
     super.onDestroyView();
     binding = null;
   }
+
+  /*───────────────────────────────────────────────────────────────────────────│─╗
+  │ Date methods                                                             ─╬─│┼
+  ╚────────────────────────────────────────────────────────────────────────────│*/
 
   private void chooseDate() {
     // Display the DatePickerDialog
@@ -163,6 +189,27 @@ public class TaskEditFragment extends Fragment {
     addTask(getCurrentTask().setDue(null));
   }
 
+  private Date getDateSelection() {
+    // Grab the current date selection as a string
+    String date = binding.dateToolbarTextView.getText().toString();
+
+    Calendar calendar = Calendar.getInstance();
+    SimpleDateFormat formatter = new SimpleDateFormat("EEE MMM dd HH:mm:ss z yyyy", Locale.ENGLISH);
+
+    // Parse the date string
+    try {
+      calendar.setTime(Objects.requireNonNull(formatter.parse(date)));
+    } catch (ParseException e) {
+      calendar.setTime(new Date());
+    }
+
+    return calendar.getTime();
+  }
+
+  /*───────────────────────────────────────────────────────────────────────────│─╗
+  │ Priority methods                                                         ─╬─│┼
+  ╚────────────────────────────────────────────────────────────────────────────│*/
+
   private void choosePriority() {
     // Disable the priority image button
     binding.priorityImageButton.setEnabled(false);
@@ -206,6 +253,19 @@ public class TaskEditFragment extends Fragment {
     addTask(getCurrentTask().setPriority(Priority.NONE));
   }
 
+  private void checkPriority(Priority priority) {
+    // Check the radio button with ID corresponding to the passed
+    // in `Priority` variant.
+    for (Integer id : PRIORITY_RADIO_BUTTON_ID_MAP.keySet()) {
+      if (PRIORITY_RADIO_BUTTON_ID_MAP.get(id).equals(priority))
+        binding.priorityToolbarRadioGroup.check(id);
+    }
+  }
+
+  /*───────────────────────────────────────────────────────────────────────────│─╗
+  │ Description methods                                                      ─╬─│┼
+  ╚────────────────────────────────────────────────────────────────────────────│*/
+
   private TextWatcher onDescriptionTextChanged() {
     return new TextWatcher() {
       @Override
@@ -220,6 +280,10 @@ public class TaskEditFragment extends Fragment {
       public void afterTextChanged(Editable editable) {}
     };
   }
+
+  /*───────────────────────────────────────────────────────────────────────────│─╗
+  │ Undo method(s)                                                           ─╬─│┼
+  ╚────────────────────────────────────────────────────────────────────────────│*/
 
   private void undo() {
     // If there's no previous task, hide everything
@@ -268,31 +332,58 @@ public class TaskEditFragment extends Fragment {
     }
   }
 
-  private Date getDateSelection() {
-    // Grab the current date selection as a string
-    String date = binding.dateToolbarTextView.getText().toString();
+  /*───────────────────────────────────────────────────────────────────────────│─╗
+  │ Action methods                                                           ─╬─│┼
+  ╚────────────────────────────────────────────────────────────────────────────│*/
 
-    Calendar calendar = Calendar.getInstance();
-    SimpleDateFormat formatter = new SimpleDateFormat("EEE MMM dd HH:mm:ss z yyyy", Locale.ENGLISH);
+  private void handleAction(TaskViewModel viewModel) {
+    // grab the current task
+    Task task = viewModel.getTask();
 
-    // Parse the date string
-    try {
-      calendar.setTime(Objects.requireNonNull(formatter.parse(date)));
-    } catch (ParseException e) {
-      calendar.setTime(new Date());
+    // set the current action
+    currentAction = viewModel.getAction();
+
+    // if we wish to edit a task, set it's fields on the UI
+    if (currentAction.equals(Action.EDIT)) {
+      // set the current id
+      currentId = task.getId();
+
+      // set description
+      binding.descriptionEditTextTextMultiLine.setText(task.getDescription());
+
+      // set due date text without validation
+      if (task.getDue() != null) {
+        // Disable the date image button
+        binding.dateImageButton.setEnabled(false);
+        // Set the date toolbar's text to the calendars date string
+        binding.dateToolbarTextView.setText(task.getDue().toString());
+        // Make the date toolbar visible
+        binding.dateToolbarLayout.setVisibility(View.VISIBLE);
+        // Add to the history
+        addTask(getCurrentTask().setDue(task.getDue()));
+      }
+
+      // set priority
+      if (task.getPriority() != null ) {
+        // `checkPriority` handles the history
+        checkPriority(task.getPriority());
+        // Make the priority toolbar visible
+        binding.priorityToolbarLayout.setVisibility(View.VISIBLE);
+      }
     }
-
-    return calendar.getTime();
   }
 
-  private void checkPriority(Priority priority) {
-    // Check the radio button with ID corresponding to the passed
-    // in `Priority` variant.
-    for (Integer id : PRIORITY_RADIO_BUTTON_ID_MAP.keySet()) {
-      if (PRIORITY_RADIO_BUTTON_ID_MAP.get(id).equals(priority))
-        binding.priorityToolbarRadioGroup.check(id);
-    }
+  public Action getCurrentAction() {
+    return currentAction;
   }
+
+  public int getCurrentId() {
+    return currentId;
+  }
+
+  /*───────────────────────────────────────────────────────────────────────────│─╗
+  │ Task methods                                                             ─╬─│┼
+  ╚────────────────────────────────────────────────────────────────────────────│*/
 
   public Task getCurrentTask() {
     // If there's no history then

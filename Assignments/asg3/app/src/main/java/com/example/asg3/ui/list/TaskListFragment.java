@@ -1,5 +1,6 @@
 package com.example.asg3.ui.list;
 
+import android.content.Context;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -14,6 +15,7 @@ import com.example.asg3.R;
 import com.example.asg3.databinding.FragmentTaskListBinding;
 import com.example.asg3.model.Task;
 import com.example.asg3.model.TaskData;
+import com.example.asg3.ui.TasksActivity;
 import java.util.Collections;
 import java.util.List;
 
@@ -25,12 +27,21 @@ public class TaskListFragment extends Fragment {
   private int mColumnCount = 1;
   private RecyclerView recyclerView;
   private FragmentTaskListBinding binding;
+  private TasksActivity tasksActivity;
+  private TaskRecyclerViewAdapter taskRecyclerViewAdapter;
 
   /**
    * Mandatory empty constructor for the fragment manager to instantiate the
    * fragment (e.g. upon screen orientation changes).
    */
-  public TaskListFragment() {
+  public TaskListFragment() {}
+
+  public FragmentTaskListBinding getBinding() {
+    return binding;
+  }
+
+  public TaskRecyclerViewAdapter getAdapter() {
+    return taskRecyclerViewAdapter;
   }
 
   // TODO: Customize parameter initialization
@@ -41,6 +52,13 @@ public class TaskListFragment extends Fragment {
     args.putInt(ARG_COLUMN_COUNT, columnCount);
     fragment.setArguments(args);
     return fragment;
+  }
+
+  @Override
+  public void onAttach(@NonNull Context context) {
+    super.onAttach(context);
+    tasksActivity = (TasksActivity) context;
+    tasksActivity.setTaskListFragment(this);
   }
 
   @Override
@@ -67,7 +85,8 @@ public class TaskListFragment extends Fragment {
     // Set the adapter
     List<Task> tasks = TaskData.getData();
     Collections.sort(tasks, Collections.reverseOrder());
-    recyclerView.setAdapter(new TaskRecyclerViewAdapter(tasks, binding));
+    taskRecyclerViewAdapter = new TaskRecyclerViewAdapter(tasks, this);
+    recyclerView.setAdapter(taskRecyclerViewAdapter);
 
     return binding.getRoot();
   }

@@ -2,6 +2,7 @@
 <androidx.coordinatorlayout.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"
   xmlns:app="http://schemas.android.com/apk/res-auto"
   xmlns:tools="http://schemas.android.com/tools"
+  android:id="@+id/coordinatorLayout"
   android:layout_width="match_parent"
   android:layout_height="match_parent"
   tools:context=".ui.TasksActivity">
@@ -21,6 +22,16 @@
 
   </com.google.android.material.appbar.AppBarLayout>
 
-  <include layout="@layout/fragment_task_edit" />
+  <include layout="@layout/content_tasks" />
+
+  <com.google.android.material.floatingactionbutton.FloatingActionButton
+    android:id="@+id/fab"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:layout_gravity="bottom|end"
+    android:layout_marginEnd="@dimen/fab_margin"
+    android:layout_marginBottom="16dp"
+    app:srcCompat="@android:drawable/ic_input_add"
+    tools:ignore="SpeakableTextPresentCheck" />
 
 </androidx.coordinatorlayout.widget.CoordinatorLayout>

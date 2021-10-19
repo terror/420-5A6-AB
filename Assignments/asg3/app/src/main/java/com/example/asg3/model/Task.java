@@ -280,8 +280,9 @@ public class Task implements Comparable<Task> {
     return urgency;
   }
 
-  public Task setUrgency(double urgency) {
-    this.urgency = urgency;
+  public Task setUrgency(Double urgency) {
+    if (urgency != null)
+      this.urgency = urgency;
     return this;
   }
 
@@ -301,7 +302,7 @@ public class Task implements Comparable<Task> {
 
   public Double calculateUrgency() {
     if (getStatus() == Status.COMPLETED) {
-      setUrgency(0);
+      setUrgency(0.0);
       return 0.0;
     }
 
