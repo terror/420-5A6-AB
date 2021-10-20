@@ -7,14 +7,10 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import androidx.recyclerview.widget.RecyclerView;
-import com.example.asg3.R;
 import com.example.asg3.databinding.ListItemTaskBinding;
-import com.example.asg3.model.Action;
 import com.example.asg3.model.Priority;
 import com.example.asg3.model.Status;
 import com.example.asg3.model.Task;
-import com.example.asg3.viewmodel.TaskListViewModel;
-import com.google.android.material.snackbar.Snackbar;
 import java.text.SimpleDateFormat;
 import java.util.Collections;
 import java.util.HashMap;
@@ -35,7 +31,7 @@ public class TaskRecyclerViewAdapter extends RecyclerView.Adapter<TaskRecyclerVi
   // task list fragment
   private TaskListFragment taskListFragment;
 
-  public TaskRecyclerViewAdapter(List<Task> tasks, TaskListFragment taskListFragment) {
+  public TaskRecyclerViewAdapter(TaskListFragment taskListFragment, List<Task> tasks) {
     // set the fragment
     this.taskListFragment = taskListFragment;
 
@@ -53,6 +49,11 @@ public class TaskRecyclerViewAdapter extends RecyclerView.Adapter<TaskRecyclerVi
 
     // indicates that each item can be represented with a unique id
     setHasStableIds(true);
+  }
+
+  public TaskRecyclerViewAdapter setTasks(List<Task> tasks) {
+    this.tasks = tasks;
+    return this;
   }
 
   /*───────────────────────────────────────────────────────────────────────────│─╗
@@ -85,60 +86,7 @@ public class TaskRecyclerViewAdapter extends RecyclerView.Adapter<TaskRecyclerVi
     return tasks.size();
   }
 
-  /*───────────────────────────────────────────────────────────────────────────│─╗
-  │ View handlers                                                            ─╬─│┼
-  ╚────────────────────────────────────────────────────────────────────────────│*/
-
-  public void handleAction(TaskListViewModel item) {
-    // the saved previous task
-    Task prev = null;
-
-    // add a new task
-    if (item.getAction().equals(Action.ADD)) {
-      tasks.add(item.getTask());
-    } else {
-      // modify the task
-      for(int i = 0; i < tasks.size(); ++i) {
-        if (tasks.get(i).getId() == item.getId()) {
-          prev = tasks.get(i);
-          tasks.set(i, item.getTask());
-        }
-      }
-    }
-
-    // update the ui
-    update(null);
-
-    // create the snack bar
-    Snackbar snackbar = Snackbar.make(
-      taskListFragment.getActivity().findViewById(R.id.coordinatorLayout),
-      Action.message(item.getAction()),
-      Snackbar.LENGTH_SHORT
-    );
-
-    Task finalPrev = prev;
-    // set event for `undo` button
-    snackbar.setAction("undo", _view -> {
-      // remove the added task
-      if (item.getAction().equals(Action.ADD)) {
-        tasks.remove(item.getTask());
-        // change back modified task
-      } else {
-        for(int i = 0; i < tasks.size(); ++i) {
-          if (tasks.get(i).getId() == item.getTask().getId())
-            tasks.set(i, finalPrev);
-        }
-      }
-
-      // update the ui
-      update(null);
-    });
-
-    // show the snack bar
-    snackbar.show();
-  }
-
-  private void update(Task task) {
+  public void update(Task task) {
     // if this task was deleted, remove it from `tasks`
     if (task != null && task.getTrash())
       tasks.remove(task);

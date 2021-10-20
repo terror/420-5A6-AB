@@ -113,7 +113,7 @@ public class TaskEditFragment extends Fragment {
     binding.priorityToolbarRadioGroup.setOnCheckedChangeListener((radioGroup, id) -> changePriority(radioGroup));
     binding.undoImageButton.setOnClickListener(_view -> undo());
 
-    // set event listener on view model
+    // handle action given the current view model state
     handleAction(tasksActivity.getTaskEditViewModel());
   }
 

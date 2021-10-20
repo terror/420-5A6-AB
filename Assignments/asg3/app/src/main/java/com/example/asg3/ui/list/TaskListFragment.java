@@ -16,10 +16,7 @@ import com.example.asg3.R;
 import com.example.asg3.databinding.FragmentTaskListBinding;
 import com.example.asg3.model.Action;
 import com.example.asg3.model.Task;
-import com.example.asg3.model.TaskData;
 import com.example.asg3.ui.TasksActivity;
-import java.util.Collections;
-import java.util.List;
 
 /**
  * A fragment representing a list of Items.
@@ -67,7 +64,8 @@ public class TaskListFragment extends Fragment {
     tasksActivity.setTaskListFragment(this);
 
     // set event listeners on the view model
-    tasksActivity.getTaskListViewModel().addOnUpdateListener(this, item -> taskRecyclerViewAdapter.handleAction(item));
+    tasksActivity.getTaskListViewModel().addOnUpdateListener(this, item -> tasksActivity.handleAction(item));
+    tasksActivity.getTaskRecyclerViewAdapterViewModel().addOnUpdateListener(this, item -> taskRecyclerViewAdapter.setTasks(item.getTasks()).update(null));
   }
 
   @Override
@@ -92,9 +90,7 @@ public class TaskListFragment extends Fragment {
     else recyclerView.setLayoutManager(new GridLayoutManager(getContext(), mColumnCount));
 
     // Set the adapter
-    List<Task> tasks = TaskData.getData();
-    Collections.sort(tasks, Collections.reverseOrder());
-    taskRecyclerViewAdapter = new TaskRecyclerViewAdapter(tasks, this);
+    taskRecyclerViewAdapter = new TaskRecyclerViewAdapter(this, tasksActivity.getTasks());
     recyclerView.setAdapter(taskRecyclerViewAdapter);
 
     return binding.getRoot();

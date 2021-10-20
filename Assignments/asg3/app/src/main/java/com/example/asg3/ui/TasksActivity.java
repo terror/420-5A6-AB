@@ -9,10 +9,18 @@ import androidx.navigation.ui.AppBarConfiguration;
 import androidx.navigation.ui.NavigationUI;
 import com.example.asg3.R;
 import com.example.asg3.databinding.ActivityTasksBinding;
+import com.example.asg3.model.Action;
+import com.example.asg3.model.Task;
+import com.example.asg3.model.TaskData;
 import com.example.asg3.ui.editor.TaskEditFragment;
 import com.example.asg3.ui.list.TaskListFragment;
 import com.example.asg3.viewmodel.TaskEditViewModel;
 import com.example.asg3.viewmodel.TaskListViewModel;
+import com.example.asg3.viewmodel.TaskRecyclerViewAdapterViewModel;
+import com.google.android.material.snackbar.Snackbar;
+
+import java.util.Collections;
+import java.util.List;
 
 public class TasksActivity extends AppCompatActivity {
   private AppBarConfiguration appBarConfiguration;
@@ -25,10 +33,20 @@ public class TasksActivity extends AppCompatActivity {
   // view models
   private TaskEditViewModel taskEditViewModel;
   private TaskListViewModel taskListViewModel;
+  private TaskRecyclerViewAdapterViewModel taskRecyclerViewAdapterViewModel;
+
+  // saved state
+  private List<Task> tasks;
 
   public TasksActivity() {
+    // create new view model instances
     taskEditViewModel = new TaskEditViewModel();
     taskListViewModel = new TaskListViewModel();
+    taskRecyclerViewAdapterViewModel = new TaskRecyclerViewAdapterViewModel();
+
+    // create the initial task list state
+    tasks = TaskData.getData();
+    Collections.sort(tasks, Collections.reverseOrder());
   }
 
   /*───────────────────────────────────────────────────────────────────────────│─╗
@@ -45,6 +63,14 @@ public class TasksActivity extends AppCompatActivity {
 
   public TaskListViewModel getTaskListViewModel() {
     return taskListViewModel;
+  }
+
+  public TaskRecyclerViewAdapterViewModel getTaskRecyclerViewAdapterViewModel() {
+    return taskRecyclerViewAdapterViewModel;
+  }
+
+  public List<Task> getTasks() {
+    return tasks;
   }
 
   public TasksActivity setTaskEditFragment(TaskEditFragment taskEditFragment) {
@@ -99,5 +125,62 @@ public class TasksActivity extends AppCompatActivity {
   public void onBackPressed() {
     // validate the current task and perform navigation on `ok`
     taskEditFragment.navigateBack();
+  }
+
+  /*───────────────────────────────────────────────────────────────────────────│─╗
+  │ View handlers                                                            ─╬─│┼
+  ╚────────────────────────────────────────────────────────────────────────────│*/
+
+  public void handleAction(TaskListViewModel item) {
+    // the saved previous task
+    Task prev = null;
+
+    // add a new task
+    if (item.getAction().equals(Action.ADD)) {
+      tasks.add(item.getTask());
+    } else {
+      // modify the task
+      for(int i = 0; i < tasks.size(); ++i) {
+        if (tasks.get(i).getId() == item.getId()) {
+          prev = tasks.get(i);
+          tasks.set(i, item.getTask());
+        }
+      }
+    }
+
+    // notify the adapter
+    taskRecyclerViewAdapterViewModel
+      .setTasks(tasks)
+      .notifyChange();
+
+    // create the snack bar
+    Snackbar snackbar = Snackbar.make(
+      findViewById(R.id.coordinatorLayout),
+      Action.message(item.getAction()),
+      Snackbar.LENGTH_SHORT
+    );
+
+    Task finalPrev = prev;
+    // set event for `undo` button
+    snackbar.setAction("undo", _view -> {
+      // remove the added task
+      if (item.getAction().equals(Action.ADD)) {
+        tasks.remove(item.getTask());
+        // change back modified task
+      } else {
+        for(int i = 0; i < tasks.size(); ++i) {
+          if (tasks.get(i).getId() == item.getTask().getId())
+            tasks.set(i, finalPrev);
+        }
+      }
+
+      // notify the adapter
+      taskRecyclerViewAdapterViewModel
+        .setTasks(tasks)
+        .notifyChange();
+    });
+
+    // show the snack bar
+    snackbar.show();
   }
 }
