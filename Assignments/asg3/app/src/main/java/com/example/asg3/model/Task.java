@@ -345,7 +345,7 @@ public class Task implements Comparable<Task> {
     Task task = (Task) o;
     return id == task.id &&
       imask == task.imask &&
-      Double.compare(task.urgency, urgency) == 0 &&
+      Double.compare(task.calculateUrgency(), calculateUrgency()) == 0 &&
       Objects.equals(uuid, task.uuid) &&
       Objects.equals(description, task.description) &&
       status == task.status &&

@@ -383,6 +383,9 @@ public class TaskEditFragment extends Fragment {
         // Make the priority toolbar visible
         binding.priorityToolbarLayout.setVisibility(View.VISIBLE);
       }
+
+      // once the modifiable fields are set, push the current task onto the history
+      addTask(item.getTask());
     }
   }
 
@@ -430,7 +433,7 @@ public class TaskEditFragment extends Fragment {
 
     // validate the description in either case, if the task is null
     // or does not contain a description, display an alert dialog
-    if (currentTask == null || currentTask.getDescription() == null || currentTask.getDescription() == "") {
+    if (currentTask == null || currentTask.getDescription() == null || currentTask.getDescription().equals("")) {
       new AlertDialog.Builder(getActivity())
         .setTitle("Empty description")
         .setMessage("Description is empty, no task will be added or modified.")

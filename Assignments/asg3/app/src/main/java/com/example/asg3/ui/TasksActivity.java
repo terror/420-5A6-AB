@@ -135,52 +135,65 @@ public class TasksActivity extends AppCompatActivity {
     // the saved previous task
     Task prev = null;
 
+    // whether or not to update the UI and display the snack bar
+    boolean updated = true;
+
     // add a new task
     if (item.getAction().equals(Action.ADD)) {
       tasks.add(item.getTask());
     } else {
       // modify the task
       for(int i = 0; i < tasks.size(); ++i) {
-        if (tasks.get(i).getId() == item.getId()) {
-          prev = tasks.get(i);
+        Task curr = tasks.get(i);
+        if (curr.getId() == item.getId()) {
+          // if the current tasks state is equal to
+          // to the supposedly modified tasks state,
+          // do not update
+          if (curr.equals(item.getTask())) {
+            updated = false;
+            break;
+          }
+          prev = curr;
           tasks.set(i, item.getTask());
         }
       }
     }
 
-    // notify the adapter
-    taskRecyclerViewAdapterViewModel
-      .setTasks(tasks)
-      .notifyChange();
-
-    // create the snack bar
-    Snackbar snackbar = Snackbar.make(
-      findViewById(R.id.coordinatorLayout),
-      Action.message(item.getAction()),
-      Snackbar.LENGTH_SHORT
-    );
-
-    Task finalPrev = prev;
-    // set event for `undo` button
-    snackbar.setAction("undo", _view -> {
-      // remove the added task
-      if (item.getAction().equals(Action.ADD)) {
-        tasks.remove(item.getTask());
-        // change back modified task
-      } else {
-        for(int i = 0; i < tasks.size(); ++i) {
-          if (tasks.get(i).getId() == item.getTask().getId())
-            tasks.set(i, finalPrev);
-        }
-      }
-
+    if (updated) {
       // notify the adapter
       taskRecyclerViewAdapterViewModel
         .setTasks(tasks)
         .notifyChange();
-    });
 
-    // show the snack bar
-    snackbar.show();
+      // create the snack bar
+      Snackbar snackbar = Snackbar.make(
+        findViewById(R.id.coordinatorLayout),
+        Action.message(item.getAction()),
+        Snackbar.LENGTH_SHORT
+      );
+
+      Task finalPrev = prev;
+      // set event for `undo` button
+      snackbar.setAction("undo", _view -> {
+        // remove the added task
+        if (item.getAction().equals(Action.ADD)) {
+          tasks.remove(item.getTask());
+          // change back modified task
+        } else {
+          for (int i = 0; i < tasks.size(); ++i) {
+            if (tasks.get(i).getId() == item.getTask().getId())
+              tasks.set(i, finalPrev);
+          }
+        }
+
+        // notify the adapter
+        taskRecyclerViewAdapterViewModel
+          .setTasks(tasks)
+          .notifyChange();
+      });
+
+      // show the snack bar
+      snackbar.show();
+    }
   }
 }

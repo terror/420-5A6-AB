@@ -86,6 +86,10 @@ public class TaskRecyclerViewAdapter extends RecyclerView.Adapter<TaskRecyclerVi
     return tasks.size();
   }
 
+  /*───────────────────────────────────────────────────────────────────────────│─╗
+  │ View handlers                                                            ─╬─│┼
+  ╚────────────────────────────────────────────────────────────────────────────│*/
+
   public void update(Task task) {
     // if this task was deleted, remove it from `tasks`
     if (task != null && task.getTrash())
