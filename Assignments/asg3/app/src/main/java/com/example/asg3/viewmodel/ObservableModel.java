@@ -19,6 +19,8 @@ import java.util.List;
  */
 public abstract class ObservableModel<T> {
 
+  private boolean checkRecursion;
+
   /**
    * Define the stucture of "update" event listeners.
    *
@@ -46,6 +48,7 @@ public abstract class ObservableModel<T> {
    */
   public ObservableModel() {
     lifecycleListeners = new LinkedList<>();
+    checkRecursion = false;
   }
 
   /**
@@ -77,6 +80,10 @@ public abstract class ObservableModel<T> {
     addOnUpdateListener((Lifecycle) null, listener);
   }
 
+//    public void removeOnUpdateListener(OnUpdateListener listener) {
+//        onUpdateListeners.remove(listener);
+//    }
+
   /**
    * Return the model instance, provided to the `onUpdate(..)` handler.
    *
@@ -89,36 +96,40 @@ public abstract class ObservableModel<T> {
    */
   public void notifyChange() {
 
+    // check that the recursion detection flag isn't already set.
+    if (checkRecursion)
+      throw new IllegalStateException("Recursion detected in the ObservableModel. You can't call notifyChange() directly or indirectly from an on-update handler.");
+    checkRecursion = true;
+
     // cycle through all the event listeners defined
     for (LifecycleListener<T> lifecycleListener : lifecycleListeners) {
+
       // non-lifecycle events are run immediately.
       if (lifecycleListener.lifecycle == null)
         lifecycleListener.onUpdateListener.onUpdate(get());
-      // all non-resumed components will have to wait until they are resumes
+
+
+        // all non-resumed components will have to wait until they are resumes
       else if (lifecycleListener.lifecycle.getCurrentState() != Lifecycle.State.RESUMED) {
+
         // Create our observer and add it to the lifecycle observer
-        final LifecycleEventObserver observer = new LifecycleEventObserver() {
-          @Override
-          public void onStateChanged(@NonNull LifecycleOwner source, @NonNull Lifecycle.Event event) {
-            if (event.equals(Lifecycle.Event.ON_RESUME))
-              lifecycleListener.onUpdateListener.onUpdate(get());
-          }
-        };
-
-        lifecycleListener.lifecycle.addObserver(observer);
-
-        // we must call removeObserver() manually when the view lifecycle is destroyed
         lifecycleListener.lifecycle.addObserver(new LifecycleEventObserver() {
           @Override
           public void onStateChanged(@NonNull LifecycleOwner source, @NonNull Lifecycle.Event event) {
-            if (event.equals(Lifecycle.Event.ON_DESTROY))
-              lifecycleListener.lifecycle.removeObserver(observer);
+            if (event.equals(Lifecycle.Event.ON_RESUME)) {
+              lifecycleListener.onUpdateListener.onUpdate(get());
+              lifecycleListener.lifecycle.removeObserver(this);
+            }
           }
         });
       }
       // otherwise the component is resumed and we can continue
       else
         lifecycleListener.onUpdateListener.onUpdate(get());
+
     }
+
+    // reset check recursion flag.
+    checkRecursion = false;
   }
 }

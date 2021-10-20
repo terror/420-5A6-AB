@@ -3,7 +3,7 @@ package com.example.asg3.viewmodel;
 import com.example.asg3.model.Action;
 import com.example.asg3.model.Task;
 
-public class TaskViewModel extends ObservableModel<TaskViewModel> {
+public class TaskEditViewModel extends ObservableModel<TaskEditViewModel> {
   private Action action;
   private Task task;
 
@@ -15,18 +15,18 @@ public class TaskViewModel extends ObservableModel<TaskViewModel> {
     return task;
   }
 
-  public TaskViewModel setTask(Task task) {
+  public TaskEditViewModel setTask(Task task) {
     this.task = task;
     return this;
   }
 
-  public TaskViewModel setAction(Action action) {
+  public TaskEditViewModel setAction(Action action) {
     this.action = action;
     return this;
   }
 
   @Override
-  protected TaskViewModel get() {
+  protected TaskEditViewModel get() {
     return this;
   }
 }

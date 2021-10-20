@@ -8,11 +8,13 @@ import android.view.ViewGroup;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
+import androidx.navigation.Navigation;
 import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import com.example.asg3.R;
 import com.example.asg3.databinding.FragmentTaskListBinding;
+import com.example.asg3.model.Action;
 import com.example.asg3.model.Task;
 import com.example.asg3.model.TaskData;
 import com.example.asg3.ui.TasksActivity;
@@ -40,10 +42,6 @@ public class TaskListFragment extends Fragment {
     return binding;
   }
 
-  public TaskRecyclerViewAdapter getAdapter() {
-    return taskRecyclerViewAdapter;
-  }
-
   // TODO: Customize parameter initialization
   @SuppressWarnings("unused")
   public static TaskListFragment newInstance(int columnCount) {
@@ -54,11 +52,22 @@ public class TaskListFragment extends Fragment {
     return fragment;
   }
 
+  /*───────────────────────────────────────────────────────────────────────────│─╗
+  │ Overridden methods                                                       ─╬─│┼
+  ╚────────────────────────────────────────────────────────────────────────────│*/
+
   @Override
   public void onAttach(@NonNull Context context) {
     super.onAttach(context);
+
+    // set the activity
     tasksActivity = (TasksActivity) context;
+
+    // set the fragment on the activity
     tasksActivity.setTaskListFragment(this);
+
+    // set event listeners on the view model
+    tasksActivity.getTaskListViewModel().addOnUpdateListener(this, item -> taskRecyclerViewAdapter.handleAction(item));
   }
 
   @Override
@@ -95,13 +104,53 @@ public class TaskListFragment extends Fragment {
   public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
     super.onViewCreated(view, savedInstanceState);
 
-    // set event listeners
+    // set event listeners on the ui
     binding.listToolbarSwitch.setOnCheckedChangeListener((button, checked) -> setGrid(checked));
   }
+
+  /*───────────────────────────────────────────────────────────────────────────│─╗
+  │ View handlers                                                            ─╬─│┼
+  ╚────────────────────────────────────────────────────────────────────────────│*/
 
   public void setGrid(boolean isChecked) {
     if (isChecked)
       recyclerView.setLayoutManager(new GridLayoutManager(getContext(), 2));
     else recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
+  }
+
+  public void handleAdd() {
+    // set properties on the task edit
+    // view model and notify listeners
+    tasksActivity.getTaskEditViewModel()
+      .setAction(Action.ADD)
+      .setTask(null);
+
+    // navigate to `edit` fragment
+    navigateToEdit();
+  }
+
+  public void handleEdit(Task task) {
+    // set properties on the task edit
+    // view model and notify listeners
+    tasksActivity.getTaskEditViewModel()
+      .setAction(Action.EDIT)
+      .setTask(task);
+
+    // navigate to `edit` fragment
+    navigateToEdit();
+  }
+
+  /*───────────────────────────────────────────────────────────────────────────│─╗
+  │ Navigation                                                               ─╬─│┼
+  ╚────────────────────────────────────────────────────────────────────────────│*/
+
+  private void navigateToEdit() {
+    // hide `add` button
+    tasksActivity.getBinding().fab.setVisibility(View.GONE);
+
+    // navigate to `edit` fragment
+    Navigation
+      .findNavController(getActivity(), R.id.nav_host_fragment_content_main)
+      .navigate(R.id.navigateToTaskEditFragment);
   }
 }

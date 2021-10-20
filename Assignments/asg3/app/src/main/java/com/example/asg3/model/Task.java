@@ -1,5 +1,7 @@
 package com.example.asg3.model;
 
+import androidx.annotation.NonNull;
+
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
@@ -431,7 +433,7 @@ public class Task implements Comparable<Task> {
   }
 
   @Override
-  public int compareTo(Task o) {
+  public int compareTo(@NonNull Task o) {
     // if they are both completed, they are equal
     if (getStatus() == Status.COMPLETED && o.getStatus() == Status.COMPLETED)
       return 0;

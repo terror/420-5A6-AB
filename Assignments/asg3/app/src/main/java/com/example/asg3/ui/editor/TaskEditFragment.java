@@ -2,6 +2,7 @@ package com.example.asg3.ui.editor;
 
 import android.app.AlertDialog;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;
@@ -15,6 +16,7 @@ import android.widget.RadioButton;
 import android.widget.RadioGroup;
 import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
+import androidx.navigation.Navigation;
 import com.example.asg3.R;
 import com.example.asg3.databinding.FragmentTaskEditBinding;
 import com.example.asg3.model.Action;
@@ -22,7 +24,7 @@ import com.example.asg3.model.Priority;
 import com.example.asg3.model.Task;
 import com.example.asg3.ui.TasksActivity;
 import com.example.asg3.ui.util.DatePickerDialogFragment;
-import com.example.asg3.viewmodel.TaskViewModel;
+import com.example.asg3.viewmodel.TaskEditViewModel;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
@@ -41,16 +43,16 @@ public class TaskEditFragment extends Fragment {
   private Stack<Task> history;
   // The task to manipulate in memory
   private Task task;
-  // Current action to perform on back button pressed
-  private Action currentAction;
-  // Current ID of task being modified
-  private int currentId;
   // Map radio button ID's -> priority variants
   private HashMap<Integer, Priority> PRIORITY_RADIO_BUTTON_ID_MAP = new HashMap() {{
     put(R.id.priority_high_radioButton,   Priority.HIGH);
     put(R.id.priority_medium_radioButton, Priority.MEDIUM);
     put(R.id.priority_low_radioButton,    Priority.LOW);
   }};
+
+  // View model fields
+  private Action action;
+  private int id;
 
   /*───────────────────────────────────────────────────────────────────────────│─╗
   │ Overridden methods                                                       ─╬─│┼
@@ -101,7 +103,7 @@ public class TaskEditFragment extends Fragment {
   public void onViewCreated(@NonNull View view, Bundle savedInstanceState) {
     super.onViewCreated(view, savedInstanceState);
 
-    // Set all ui event listeners
+    // set all ui event listeners
     binding.dateImageButton.setOnClickListener(_view -> chooseDate());
     binding.dateToolbar.setOnClickListener(_view -> editDate());
     binding.dateToolbarClose.setOnClickListener(_view -> closeDate());
@@ -111,14 +113,28 @@ public class TaskEditFragment extends Fragment {
     binding.priorityToolbarRadioGroup.setOnCheckedChangeListener((radioGroup, id) -> changePriority(radioGroup));
     binding.undoImageButton.setOnClickListener(_view -> undo());
 
-    // Handle the current action
-    handleAction(tasksActivity.getTaskViewModel());
+    // set event listener on view model
+    handleAction(tasksActivity.getTaskEditViewModel());
   }
 
   @Override
   public void onDestroyView() {
     super.onDestroyView();
     binding = null;
+  }
+
+  /*───────────────────────────────────────────────────────────────────────────│─╗
+  │ Getters                                                                  ─╬─│┼
+  ╚────────────────────────────────────────────────────────────────────────────│*/
+
+  public Task getCurrentTask() {
+    // If there's no history then
+    // return the `Task` instance on this.
+    if (history.isEmpty())
+      return task;
+
+    // The current task is at the top of the stack
+    return history.peek().copy();
   }
 
   /*───────────────────────────────────────────────────────────────────────────│─╗
@@ -333,67 +349,105 @@ public class TaskEditFragment extends Fragment {
   }
 
   /*───────────────────────────────────────────────────────────────────────────│─╗
-  │ Action methods                                                           ─╬─│┼
+  │ Action handlers                                                          ─╬─│┼
   ╚────────────────────────────────────────────────────────────────────────────│*/
 
-  private void handleAction(TaskViewModel viewModel) {
-    // grab the current task
-    Task task = viewModel.getTask();
-
+  public void handleAction(TaskEditViewModel item) {
     // set the current action
-    currentAction = viewModel.getAction();
+    action = item.getAction();
 
     // if we wish to edit a task, set it's fields on the UI
-    if (currentAction.equals(Action.EDIT)) {
+    if (action.equals(Action.EDIT)) {
       // set the current id
-      currentId = task.getId();
+      id = item.getTask().getId();
 
-      // set description
-      binding.descriptionEditTextTextMultiLine.setText(task.getDescription());
+      // set the description
+      binding.descriptionEditTextTextMultiLine.setText(item.getTask().getDescription());
 
       // set due date text without validation
-      if (task.getDue() != null) {
+      if (item.getTask().getDue() != null) {
         // Disable the date image button
         binding.dateImageButton.setEnabled(false);
         // Set the date toolbar's text to the calendars date string
-        binding.dateToolbarTextView.setText(task.getDue().toString());
+        binding.dateToolbarTextView.setText(item.getTask().getDue().toString());
         // Make the date toolbar visible
         binding.dateToolbarLayout.setVisibility(View.VISIBLE);
         // Add to the history
-        addTask(getCurrentTask().setDue(task.getDue()));
+        addTask(getCurrentTask().setDue(item.getTask().getDue()));
       }
 
       // set priority
-      if (task.getPriority() != null ) {
+      if (item.getTask().getPriority() != null) {
         // `checkPriority` handles the history
-        checkPriority(task.getPriority());
+        checkPriority(item.getTask().getPriority());
         // Make the priority toolbar visible
         binding.priorityToolbarLayout.setVisibility(View.VISIBLE);
       }
     }
   }
 
-  public Action getCurrentAction() {
-    return currentAction;
+  public void handleBackPressed() {
+    // set properties on the task list
+    // view model and notify listeners
+    tasksActivity.getTaskListViewModel()
+      .setTask(getCurrentTask())
+      .setAction(action)
+      .setId(id)
+      .notifyChange();
+
+    // navigate to the `list` fragment
+    navigateToList();
   }
 
-  public int getCurrentId() {
-    return currentId;
+  /*───────────────────────────────────────────────────────────────────────────│─╗
+  │ Navigation                                                               ─╬─│┼
+  ╚────────────────────────────────────────────────────────────────────────────│*/
+
+  private void navigateToList() {
+    // show the `add` button
+    tasksActivity.getBinding().fab.setVisibility(View.VISIBLE);
+
+    // navigate to `list` fragment by popping off the stack
+    Navigation
+      .findNavController(getActivity(), R.id.nav_host_fragment_content_main)
+      .popBackStack();
+  }
+
+  public void navigateBack() {
+    // validate the current task and perform navigation on `ok`
+    // if the task is valid, notify the list fragment
+    if (validateCurrentTask(((dialogInterface, i) -> navigateToList())))
+      handleBackPressed();
+  }
+
+  /*───────────────────────────────────────────────────────────────────────────│─╗
+  │ Validation                                                               ─╬─│┼
+  ╚────────────────────────────────────────────────────────────────────────────│*/
+
+  private boolean validateCurrentTask(DialogInterface.OnClickListener listener) {
+    // get the current task
+    Task currentTask = getCurrentTask();
+
+    // validate the description in either case, if the task is null
+    // or does not contain a description, display an alert dialog
+    if (currentTask == null || currentTask.getDescription() == null || currentTask.getDescription() == "") {
+      new AlertDialog.Builder(getActivity())
+        .setTitle("Empty description")
+        .setMessage("Description is empty, no task will be added or modified.")
+        .setNegativeButton(android.R.string.ok, listener)
+        .show();
+
+      // the current task isn't valid
+      return false;
+    }
+
+    // the current task is valid
+    return true;
   }
 
   /*───────────────────────────────────────────────────────────────────────────│─╗
   │ Task methods                                                             ─╬─│┼
   ╚────────────────────────────────────────────────────────────────────────────│*/
-
-  public Task getCurrentTask() {
-    // If there's no history then
-    // return the `Task` instance on this.
-    if (history.isEmpty())
-      return task;
-
-    // The current task is at the top of the stack
-    return history.peek().copy();
-  }
 
   public Task getPreviousTask() {
     // The task on top of the stack is the current one,
