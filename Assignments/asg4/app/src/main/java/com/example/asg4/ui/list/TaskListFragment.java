@@ -16,7 +16,11 @@ import com.example.asg4.R;
 import com.example.asg4.databinding.FragmentTaskListBinding;
 import com.example.asg4.model.Action;
 import com.example.asg4.model.Task;
+import com.example.asg4.model.TaskDBHandler;
+import com.example.asg4.sqlite.DatabaseException;
 import com.example.asg4.ui.TasksActivity;
+import java.util.Collections;
+import java.util.List;
 
 /**
  * A fragment representing a list of Items.
@@ -37,6 +41,10 @@ public class TaskListFragment extends Fragment {
 
   public FragmentTaskListBinding getBinding() {
     return binding;
+  }
+
+  public TaskDBHandler getTaskDBHandler() {
+    return tasksActivity.getTaskDBHandler();
   }
 
   // TODO: Customize parameter initialization
@@ -90,7 +98,7 @@ public class TaskListFragment extends Fragment {
     else recyclerView.setLayoutManager(new GridLayoutManager(getContext(), mColumnCount));
 
     // Set the adapter
-    taskRecyclerViewAdapter = new TaskRecyclerViewAdapter(this, tasksActivity.getTasks());
+    taskRecyclerViewAdapter = new TaskRecyclerViewAdapter(this, getTasks());
     recyclerView.setAdapter(taskRecyclerViewAdapter);
 
     return binding.getRoot();
@@ -148,5 +156,31 @@ public class TaskListFragment extends Fragment {
     Navigation
       .findNavController(getActivity(), R.id.nav_host_fragment_content_main)
       .navigate(R.id.navigateToTaskEditFragment);
+  }
+
+  /*───────────────────────────────────────────────────────────────────────────│─╗
+  │ Utilities                                                                ─╬─│┼
+  ╚────────────────────────────────────────────────────────────────────────────│*/
+
+  private List<Task> getTasks() {
+    // create a new db handler instance and set it on the activity
+    TaskDBHandler taskDBHandler = new TaskDBHandler(tasksActivity);
+    tasksActivity.setTaskDBHandler(taskDBHandler);
+
+    // set the initial task list state
+    List<Task> tasks = null;
+    try {
+      tasks = taskDBHandler.getTaskTable().readAll();
+    } catch (DatabaseException e) {
+      e.printStackTrace();
+    }
+
+    // sort the tasks list in reverse order
+    Collections.sort(tasks, Collections.reverseOrder());
+
+    // Set tasks on the activity
+    tasksActivity.setTasks(tasks);
+
+    return tasks;
   }
 }

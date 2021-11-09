@@ -11,14 +11,15 @@ import com.example.asg4.R;
 import com.example.asg4.databinding.ActivityTasksBinding;
 import com.example.asg4.model.Action;
 import com.example.asg4.model.Task;
-import com.example.asg4.model.TaskData;
+import com.example.asg4.model.TaskDBHandler;
+import com.example.asg4.sqlite.DatabaseException;
 import com.example.asg4.ui.editor.TaskEditFragment;
 import com.example.asg4.ui.list.TaskListFragment;
 import com.example.asg4.viewmodel.TaskEditViewModel;
 import com.example.asg4.viewmodel.TaskListViewModel;
 import com.example.asg4.viewmodel.TaskRecyclerViewAdapterViewModel;
 import com.google.android.material.snackbar.Snackbar;
-import java.util.Collections;
+
 import java.util.List;
 
 public class TasksActivity extends AppCompatActivity {
@@ -34,18 +35,17 @@ public class TasksActivity extends AppCompatActivity {
   private TaskListViewModel taskListViewModel;
   private TaskRecyclerViewAdapterViewModel taskRecyclerViewAdapterViewModel;
 
-  // saved state
-  private List<Task> tasks;
+  // database handler
+  private TaskDBHandler taskDBHandler;
+
+  // saved task state
+  public List<Task> tasks;
 
   public TasksActivity() {
     // create new view model instances
     taskEditViewModel = new TaskEditViewModel();
     taskListViewModel = new TaskListViewModel();
     taskRecyclerViewAdapterViewModel = new TaskRecyclerViewAdapterViewModel();
-
-    // create the initial task list state
-    tasks = TaskData.getData();
-    Collections.sort(tasks, Collections.reverseOrder());
   }
 
   /*───────────────────────────────────────────────────────────────────────────│─╗
@@ -68,8 +68,9 @@ public class TasksActivity extends AppCompatActivity {
     return taskRecyclerViewAdapterViewModel;
   }
 
-  public List<Task> getTasks() {
-    return tasks;
+  public TasksActivity setTasks(List<Task> tasks) {
+    this.tasks = tasks;
+    return this;
   }
 
   public TasksActivity setTaskEditFragment(TaskEditFragment taskEditFragment) {
@@ -79,6 +80,15 @@ public class TasksActivity extends AppCompatActivity {
 
   public TasksActivity setTaskListFragment(TaskListFragment taskListFragment) {
     this.taskListFragment = taskListFragment;
+    return this;
+  }
+
+  public TaskDBHandler getTaskDBHandler() {
+    return taskDBHandler;
+  }
+
+  public TasksActivity setTaskDBHandler(TaskDBHandler taskDBHandler) {
+    this.taskDBHandler = taskDBHandler;
     return this;
   }
 
@@ -139,9 +149,14 @@ public class TasksActivity extends AppCompatActivity {
 
     // add a new task
     if (item.getAction().equals(Action.ADD)) {
-      tasks.add(item.getTask());
+      try {
+        tasks.add(item.getTask());
+        taskDBHandler.getTaskTable().create(item.getTask());
+      } catch (DatabaseException e) {
+        e.printStackTrace();
+      }
+    // modify the task
     } else {
-      // modify the task
       for(int i = 0; i < tasks.size(); ++i) {
         Task curr = tasks.get(i);
         if (curr.getId() == item.getId()) {
@@ -152,8 +167,18 @@ public class TasksActivity extends AppCompatActivity {
             updated = false;
             break;
           }
+
+          // set the previous task for undo
           prev = curr;
-          tasks.set(i, item.getTask());
+
+          // set the proper id before update
+          item.getTask().setId(item.getId());
+          try {
+            tasks.set(i, item.getTask());
+            taskDBHandler.getTaskTable().update(item.getTask());
+          } catch (DatabaseException e) {
+            e.printStackTrace();
+          }
         }
       }
     }
@@ -176,12 +201,23 @@ public class TasksActivity extends AppCompatActivity {
       snackbar.setAction("undo", _view -> {
         // remove the added task
         if (item.getAction().equals(Action.ADD)) {
-          tasks.remove(item.getTask());
-          // change back modified task
+          try {
+            tasks.remove(item.getTask());
+            taskDBHandler.getTaskTable().delete(item.getTask());
+          } catch (DatabaseException e) {
+            e.printStackTrace();
+          }
+        // change back modified task
         } else {
           for (int i = 0; i < tasks.size(); ++i) {
-            if (tasks.get(i).getId() == item.getTask().getId())
-              tasks.set(i, finalPrev);
+            if (tasks.get(i).getId() == item.getTask().getId()) {
+              try {
+                tasks.set(i, finalPrev);
+                taskDBHandler.getTaskTable().update(finalPrev);
+              } catch (DatabaseException e) {
+                e.printStackTrace();
+              }
+            }
           }
         }
 

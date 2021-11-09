@@ -60,8 +60,11 @@ public class Task implements Comparable<Task>, Identifiable<Long> {
   // Computed value of the task's urgency.
   private Double urgency;
 
-  // Trash
+  // Whether this task was trashed
   private boolean trash;
+
+  // Whether this task has tags
+  private boolean hasTags;
 
   /**
    * Create a blank task.
@@ -91,6 +94,7 @@ public class Task implements Comparable<Task>, Identifiable<Long> {
     status = Status.NONE;
     priority = Priority.NONE;
     tags = new ArrayList<>();
+    this.hasTags = tags.size() != 0;
     annotations = new ArrayList<>();
   }
 
@@ -277,6 +281,16 @@ public class Task implements Comparable<Task>, Identifiable<Long> {
 
   public Task setTags(List<String> tags) {
     this.tags = tags;
+    this.hasTags = tags.size() != 0;
+    return this;
+  }
+
+  public boolean getHasTags() {
+    return hasTags;
+  }
+
+  public Task setHasTags(boolean hasTags) {
+    this.hasTags = hasTags;
     return this;
   }
 
@@ -317,7 +331,7 @@ public class Task implements Comparable<Task>, Identifiable<Long> {
       ret += 12.0;
 
     // account for tags
-    if (getTags().size() != 0)
+    if (getHasTags())
       ret += 1.0;
 
     // account for priority

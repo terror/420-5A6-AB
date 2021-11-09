@@ -11,6 +11,7 @@ import com.example.asg4.databinding.ListItemTaskBinding;
 import com.example.asg4.model.Priority;
 import com.example.asg4.model.Status;
 import com.example.asg4.model.Task;
+import com.example.asg4.sqlite.DatabaseException;
 import java.text.SimpleDateFormat;
 import java.util.Collections;
 import java.util.HashMap;
@@ -92,8 +93,21 @@ public class TaskRecyclerViewAdapter extends RecyclerView.Adapter<TaskRecyclerVi
 
   public void update(Task task) {
     // if this task was deleted, remove it from `tasks`
-    if (task != null && task.getTrash())
-      tasks.remove(task);
+    if (task != null && task.getTrash()) {
+      try {
+        taskListFragment.getTaskDBHandler().getTaskTable().delete(task);
+        tasks.remove(task);
+      } catch (DatabaseException e) {
+        e.printStackTrace();
+      }
+    } else if (task != null) {
+      // update the task on disk
+      try {
+        taskListFragment.getTaskDBHandler().getTaskTable().update(task);
+      } catch (DatabaseException e) {
+        e.printStackTrace();
+      }
+    }
 
     // sort `tasks` in reverse order
     Collections.sort(tasks, Collections.reverseOrder());
@@ -207,13 +221,13 @@ public class TaskRecyclerViewAdapter extends RecyclerView.Adapter<TaskRecyclerVi
       // if the checkbox is not checked, set the status to pending
       if (!isChecked) {
         task.setStatus(Status.PENDING);
+      // set the task's status to completed
       } else {
-        // set the task's status to completed
         task.setStatus(Status.COMPLETED);
       }
 
-      // resort the tasks list
-      update(null);
+      // resort the tasks list and update the current task on disk
+      update(task);
     }
   }
 }
