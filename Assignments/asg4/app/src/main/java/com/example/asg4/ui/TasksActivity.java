@@ -1,7 +1,12 @@
 package com.example.asg4.ui;
 
+import android.app.NotificationChannel;
+import android.app.NotificationManager;
+import android.content.Intent;
 import android.os.Bundle;
 import android.view.MenuItem;
+import android.view.View;
+
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.navigation.NavController;
 import androidx.navigation.Navigation;
@@ -12,6 +17,7 @@ import com.example.asg4.databinding.ActivityTasksBinding;
 import com.example.asg4.model.Action;
 import com.example.asg4.model.Task;
 import com.example.asg4.model.TaskDBHandler;
+import com.example.asg4.notification.Alarm;
 import com.example.asg4.sqlite.DatabaseException;
 import com.example.asg4.ui.editor.TaskEditFragment;
 import com.example.asg4.ui.list.TaskListFragment;
@@ -19,7 +25,6 @@ import com.example.asg4.viewmodel.TaskEditViewModel;
 import com.example.asg4.viewmodel.TaskListViewModel;
 import com.example.asg4.viewmodel.TaskRecyclerViewAdapterViewModel;
 import com.google.android.material.snackbar.Snackbar;
-
 import java.util.List;
 
 public class TasksActivity extends AppCompatActivity {
@@ -40,6 +45,10 @@ public class TasksActivity extends AppCompatActivity {
 
   // saved task state
   public List<Task> tasks;
+
+  // constants
+  public static final String TASKS_NOTIFICATION_CHANNEL = "tasks-notification-channel";
+  public static final String TASKS_NOTIFICATION_GROUP = "tasks-notifications";
 
   public TasksActivity() {
     // create new view model instances
@@ -66,6 +75,10 @@ public class TasksActivity extends AppCompatActivity {
 
   public TaskRecyclerViewAdapterViewModel getTaskRecyclerViewAdapterViewModel() {
     return taskRecyclerViewAdapterViewModel;
+  }
+
+  public List<Task> getTasks() {
+    return tasks;
   }
 
   public TasksActivity setTasks(List<Task> tasks) {
@@ -100,6 +113,7 @@ public class TasksActivity extends AppCompatActivity {
   protected void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
 
+    // set the binding
     binding = ActivityTasksBinding.inflate(getLayoutInflater());
 
     // event listeners
@@ -111,6 +125,27 @@ public class TasksActivity extends AppCompatActivity {
     NavController navController = Navigation.findNavController(this, R.id.nav_host_fragment_content_main);
     appBarConfiguration = new AppBarConfiguration.Builder(navController.getGraph()).build();
     NavigationUI.setupActionBarWithNavController(this, navController, appBarConfiguration);
+
+    // create the notification channel
+    createChannel();
+
+    // process intent
+    Intent intent = getIntent();
+    Bundle bundle = intent.getExtras();
+    if (bundle != null) {
+      // set the view model
+      this.getTaskEditViewModel()
+        .setAction(Action.EDIT)
+        .setTask(Task.fromBundle(bundle));
+
+      // hide `add` button
+      this.getBinding().fab.setVisibility(View.GONE);
+
+      // navigate to `edit` fragment
+      Navigation
+        .findNavController(this, R.id.nav_host_fragment_content_main)
+        .navigate(R.id.navigateToTaskEditFragment);
+    }
   }
 
   @Override
@@ -144,91 +179,104 @@ public class TasksActivity extends AppCompatActivity {
     // the saved previous task
     Task prev = null;
 
-    // whether or not to update the UI and display the snack bar
-    boolean updated = true;
-
     // add a new task
-    if (item.getAction().equals(Action.ADD)) {
-      try {
-        tasks.add(item.getTask());
-        taskDBHandler.getTaskTable().create(item.getTask());
-      } catch (DatabaseException e) {
-        e.printStackTrace();
-      }
+    if (item.getAction().equals(Action.ADD))
+      handleAdd(item.getTask());
     // modify the task
-    } else {
-      for(int i = 0; i < tasks.size(); ++i) {
+    else {
+      for (int i = 0; i < tasks.size(); ++i) {
         Task curr = tasks.get(i);
         if (curr.getId() == item.getId()) {
-          // if the current tasks state is equal to
-          // to the supposedly modified tasks state,
-          // do not update
-          if (curr.equals(item.getTask())) {
-            updated = false;
-            break;
-          }
-
           // set the previous task for undo
           prev = curr;
-
           // set the proper id before update
           item.getTask().setId(item.getId());
-          try {
-            tasks.set(i, item.getTask());
-            taskDBHandler.getTaskTable().update(item.getTask());
-          } catch (DatabaseException e) {
-            e.printStackTrace();
-          }
+          // update the task
+          handleUpdate(i, item.getTask());
         }
       }
     }
 
-    if (updated) {
+    // notify the adapter
+    taskRecyclerViewAdapterViewModel
+      .setTasks(tasks)
+      .notifyChange();
+
+    // create the snack bar
+    Snackbar snackbar = Snackbar.make(
+      findViewById(R.id.coordinatorLayout),
+      Action.message(item.getAction()),
+      Snackbar.LENGTH_SHORT
+    );
+
+    Task finalPrev = prev;
+    // set event for `undo` button
+    snackbar.setAction("undo", _view -> {
+      // remove the added task
+      if (item.getAction().equals(Action.ADD))
+        handleRemove(item.getTask());
+      // change back modified task
+      else {
+        for (int i = 0; i < tasks.size(); ++i)
+          if (tasks.get(i).getId() == item.getTask().getId())
+            handleUpdate(i, finalPrev);
+      }
+
       // notify the adapter
       taskRecyclerViewAdapterViewModel
         .setTasks(tasks)
         .notifyChange();
+    });
 
-      // create the snack bar
-      Snackbar snackbar = Snackbar.make(
-        findViewById(R.id.coordinatorLayout),
-        Action.message(item.getAction()),
-        Snackbar.LENGTH_SHORT
-      );
+    // show the snack bar
+    snackbar.show();
+  }
 
-      Task finalPrev = prev;
-      // set event for `undo` button
-      snackbar.setAction("undo", _view -> {
-        // remove the added task
-        if (item.getAction().equals(Action.ADD)) {
-          try {
-            tasks.remove(item.getTask());
-            taskDBHandler.getTaskTable().delete(item.getTask());
-          } catch (DatabaseException e) {
-            e.printStackTrace();
-          }
-        // change back modified task
-        } else {
-          for (int i = 0; i < tasks.size(); ++i) {
-            if (tasks.get(i).getId() == item.getTask().getId()) {
-              try {
-                tasks.set(i, finalPrev);
-                taskDBHandler.getTaskTable().update(finalPrev);
-              } catch (DatabaseException e) {
-                e.printStackTrace();
-              }
-            }
-          }
-        }
-
-        // notify the adapter
-        taskRecyclerViewAdapterViewModel
-          .setTasks(tasks)
-          .notifyChange();
-      });
-
-      // show the snack bar
-      snackbar.show();
+  private void handleAdd(Task task) {
+    try {
+      tasks.add(task);
+      taskDBHandler.getTaskTable().create(task);
+      Alarm.set(this, task);
+    } catch (DatabaseException e) {
+      e.printStackTrace();
     }
+  }
+
+  private void handleRemove(Task task) {
+    try {
+      tasks.remove(task);
+      taskDBHandler.getTaskTable().delete(task);
+      Alarm.cancel(this, task);
+    } catch (DatabaseException e) {
+      e.printStackTrace();
+    }
+  }
+
+  private void handleUpdate(int index, Task task) {
+    try {
+      tasks.set(index, task);
+      taskDBHandler.getTaskTable().update(task);
+      Alarm.update(this, task);
+    } catch (DatabaseException e) {
+      e.printStackTrace();
+    }
+  }
+
+  /*───────────────────────────────────────────────────────────────────────────│─╗
+  │ Utilities                                                                ─╬─│┼
+  ╚────────────────────────────────────────────────────────────────────────────│*/
+
+  private void createChannel() {
+    String name = "Tasks";
+    String description = "Notifications concerning Tasks that are overdue";
+
+    int importance = NotificationManager.IMPORTANCE_DEFAULT;
+    NotificationChannel channel = new NotificationChannel(TASKS_NOTIFICATION_CHANNEL, name, importance);
+    channel.setDescription(description);
+
+    // Register the channel with the system; you can't change the importance
+    // or other notification behaviors after this
+    NotificationManager notificationManager = getSystemService(NotificationManager.class);
+    notificationManager.createNotificationChannel(channel);
   }
 }

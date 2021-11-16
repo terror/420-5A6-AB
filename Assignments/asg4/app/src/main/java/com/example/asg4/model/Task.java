@@ -1,7 +1,15 @@
 package com.example.asg4.model;
 
+import android.accessibilityservice.AccessibilityService;
+import android.os.Bundle;
+import android.os.Parcel;
+import android.os.Parcelable;
+
 import androidx.annotation.NonNull;
 import com.example.asg4.sqlite.Identifiable;
+import java.io.Serializable;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
@@ -98,16 +106,9 @@ public class Task implements Comparable<Task>, Identifiable<Long> {
     annotations = new ArrayList<>();
   }
 
-  @Override
-  public Long getId() {
-    return id;
-  }
-
-  @Override
-  public Identifiable<Long> setId(Long id) {
-    this.id = id;
-    return this;
-  }
+  /*───────────────────────────────────────────────────────────────────────────│─╗
+  │ Getters & Setters                                                        ─╬─│┼
+  ╚────────────────────────────────────────────────────────────────────────────│*/
 
   public UUID getUuid() {
     return uuid;
@@ -352,6 +353,58 @@ public class Task implements Comparable<Task>, Identifiable<Long> {
     if (getDue() != null)
       return curr.getTime().after(getDue());
     return false;
+  }
+
+  public Bundle toBundle() {
+    Bundle bundle = new Bundle();
+
+    bundle.putLong("id", getId());
+    bundle.putString("description", getDescription());
+    bundle.putInt("status", getStatus().ordinal());
+    bundle.putInt("priority", getPriority().ordinal());
+    bundle.putStringArrayList("tags", (ArrayList<String>) getTags());
+
+    if (getDue() != null)
+      bundle.putString("date", new SimpleDateFormat("dd MM yyyy HH:mm:ss").format(getDue()));
+
+    return bundle;
+  }
+
+  public static Task fromBundle(Bundle bundle) {
+    Task task = new Task();
+
+    task.setId(bundle.getLong("id"));
+    task.setDescription(bundle.getString("description"));
+    task.setStatus(Status.values()[bundle.getInt("status")]);
+    task.setPriority(Priority.values()[bundle.getInt("priority")]);
+    task.setTags(bundle.getStringArrayList("tags"));
+
+
+    Date ret = null;
+    try {
+      if (bundle.containsKey("date"))
+        ret = new SimpleDateFormat("dd MM yyyy HH:mm:ss").parse(bundle.getString("date"));
+    } catch (ParseException e) {
+      e.printStackTrace();
+    }
+
+    task.setDue(ret);
+    return task;
+  }
+
+  /*───────────────────────────────────────────────────────────────────────────│─╗
+  │ Overridden Methods                                                        ─╬─│┼
+  ╚────────────────────────────────────────────────────────────────────────────│*/
+
+  @Override
+  public Long getId() {
+    return id;
+  }
+
+  @Override
+  public Identifiable<Long> setId(Long id) {
+    this.id = id;
+    return this;
   }
 
   @Override

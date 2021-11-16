@@ -19,7 +19,6 @@ public class TaskTable extends Table<Task> {
   public static final String COLUMN_TAGS        = "tags";
   public static final String COLUMN_DUE         = "due";
   public static final String COLUMN_URGENCY     = "urgency";
-  public static final String COLUMN_TRASH       = "trash";
 
   public static final String DATE_FORMAT = "yyyy-MM-dd'T'HH:mm:ss.SSSZ";
 

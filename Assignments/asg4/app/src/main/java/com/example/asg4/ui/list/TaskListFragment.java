@@ -163,24 +163,27 @@ public class TaskListFragment extends Fragment {
   ╚────────────────────────────────────────────────────────────────────────────│*/
 
   private List<Task> getTasks() {
-    // create a new db handler instance and set it on the activity
+    // create a new db handler instance
     TaskDBHandler taskDBHandler = new TaskDBHandler(tasksActivity);
-    tasksActivity.setTaskDBHandler(taskDBHandler);
 
     // set the initial task list state
-    List<Task> tasks = null;
-    try {
-      tasks = taskDBHandler.getTaskTable().readAll();
-    } catch (DatabaseException e) {
-      e.printStackTrace();
-    }
+    List<Task> tasks = readTasks(taskDBHandler);
+
+    // setup activity and notifications
+    tasksActivity
+      .setTaskDBHandler(taskDBHandler)
+      .setTasks(tasks);
 
     // sort the tasks list in reverse order
     Collections.sort(tasks, Collections.reverseOrder());
 
-    // Set tasks on the activity
-    tasksActivity.setTasks(tasks);
+    return tasks;
+  }
 
+  private List<Task> readTasks(TaskDBHandler taskDBHandler) {
+    List<Task> tasks = null;
+    try   { tasks = taskDBHandler.getTaskTable().readAll(); }
+    catch (DatabaseException e) { e.printStackTrace(); }
     return tasks;
   }
 }
