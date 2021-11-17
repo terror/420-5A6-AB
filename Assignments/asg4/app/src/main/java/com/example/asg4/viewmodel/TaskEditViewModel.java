@@ -11,17 +11,17 @@ public class TaskEditViewModel extends ObservableModel<TaskEditViewModel> {
     return action;
   }
 
+  public TaskEditViewModel setAction(Action action) {
+    this.action = action;
+    return this;
+  }
+
   public Task getTask() {
     return task;
   }
 
   public TaskEditViewModel setTask(Task task) {
     this.task = task;
-    return this;
-  }
-
-  public TaskEditViewModel setAction(Action action) {
-    this.action = action;
     return this;
   }
 

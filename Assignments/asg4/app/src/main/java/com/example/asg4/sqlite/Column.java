@@ -11,16 +11,12 @@ package com.example.asg4.sqlite;
  */
 public class Column {
 
-  // enumeration of all supported sqlite datatypes.
-  public enum Type {TEXT, REAL, INTEGER, BLOB}
-
   private String name;
   private Type type;
   private boolean notNull;
   private boolean unique;
   private boolean primaryKey;
   private boolean autoincrement;
-
   /**
    * Create a database column
    *
@@ -38,14 +34,14 @@ public class Column {
     autoincrement = false;
   }
 
+  public String getName() {
+    return name;
+  }
+
   /* Getters and setters
    *
    *   - setters return "this" to allow cascading setters.
    * */
-
-  public String getName() {
-    return name;
-  }
 
   public Column setName(String name) {
     this.name = name;
@@ -116,4 +112,7 @@ public class Column {
       sb.append(" AUTOINCREMENT");
     return sb.toString();
   }
+
+  // enumeration of all supported sqlite datatypes.
+  public enum Type {TEXT, REAL, INTEGER, BLOB}
 }

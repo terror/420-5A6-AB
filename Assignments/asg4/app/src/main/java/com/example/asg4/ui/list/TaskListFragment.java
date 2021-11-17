@@ -5,6 +5,7 @@ import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
@@ -12,6 +13,7 @@ import androidx.navigation.Navigation;
 import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
+
 import com.example.asg4.R;
 import com.example.asg4.databinding.FragmentTaskListBinding;
 import com.example.asg4.model.Action;
@@ -19,6 +21,7 @@ import com.example.asg4.model.Task;
 import com.example.asg4.model.TaskDBHandler;
 import com.example.asg4.sqlite.DatabaseException;
 import com.example.asg4.ui.TasksActivity;
+
 import java.util.Collections;
 import java.util.List;
 
@@ -37,14 +40,7 @@ public class TaskListFragment extends Fragment {
    * Mandatory empty constructor for the fragment manager to instantiate the
    * fragment (e.g. upon screen orientation changes).
    */
-  public TaskListFragment() {}
-
-  public FragmentTaskListBinding getBinding() {
-    return binding;
-  }
-
-  public TaskDBHandler getTaskDBHandler() {
-    return tasksActivity.getTaskDBHandler();
+  public TaskListFragment() {
   }
 
   // TODO: Customize parameter initialization
@@ -55,6 +51,14 @@ public class TaskListFragment extends Fragment {
     args.putInt(ARG_COLUMN_COUNT, columnCount);
     fragment.setArguments(args);
     return fragment;
+  }
+
+  public FragmentTaskListBinding getBinding() {
+    return binding;
+  }
+
+  public TaskDBHandler getTaskDBHandler() {
+    return tasksActivity.getTaskDBHandler();
   }
 
   /*───────────────────────────────────────────────────────────────────────────│─╗
@@ -182,8 +186,11 @@ public class TaskListFragment extends Fragment {
 
   private List<Task> readTasks(TaskDBHandler taskDBHandler) {
     List<Task> tasks = null;
-    try   { tasks = taskDBHandler.getTaskTable().readAll(); }
-    catch (DatabaseException e) { e.printStackTrace(); }
+    try {
+      tasks = taskDBHandler.getTaskTable().readAll();
+    } catch (DatabaseException e) {
+      e.printStackTrace();
+    }
     return tasks;
   }
 }

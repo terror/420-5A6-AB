@@ -5,6 +5,7 @@ import androidx.fragment.app.Fragment;
 import androidx.lifecycle.Lifecycle;
 import androidx.lifecycle.LifecycleEventObserver;
 import androidx.lifecycle.LifecycleOwner;
+
 import java.util.LinkedList;
 import java.util.List;
 
@@ -20,27 +21,6 @@ import java.util.List;
 public abstract class ObservableModel<T> {
 
   private boolean checkRecursion;
-
-  /**
-   * Define the stucture of "update" event listeners.
-   *
-   * @param <T>
-   */
-  public interface OnUpdateListener<T> {
-    void onUpdate(T item);
-  }
-
-  // container class for listeners, connecting listeners to their lifecycle (if provided).
-  private static class LifecycleListener<T> {
-    public Lifecycle lifecycle;
-    public OnUpdateListener<T> onUpdateListener;
-
-    public LifecycleListener(Lifecycle lifecycle, OnUpdateListener<T> onUpdateListener) {
-      this.lifecycle = lifecycle;
-      this.onUpdateListener = onUpdateListener;
-    }
-  }
-
   private List<LifecycleListener<T>> lifecycleListeners;
 
   /**
@@ -79,10 +59,6 @@ public abstract class ObservableModel<T> {
   public void addOnUpdateListener(OnUpdateListener<T> listener) {
     addOnUpdateListener((Lifecycle) null, listener);
   }
-
-//    public void removeOnUpdateListener(OnUpdateListener listener) {
-//        onUpdateListeners.remove(listener);
-//    }
 
   /**
    * Return the model instance, provided to the `onUpdate(..)` handler.
@@ -131,5 +107,29 @@ public abstract class ObservableModel<T> {
 
     // reset check recursion flag.
     checkRecursion = false;
+  }
+
+//    public void removeOnUpdateListener(OnUpdateListener listener) {
+//        onUpdateListeners.remove(listener);
+//    }
+
+  /**
+   * Define the stucture of "update" event listeners.
+   *
+   * @param <T>
+   */
+  public interface OnUpdateListener<T> {
+    void onUpdate(T item);
+  }
+
+  // container class for listeners, connecting listeners to their lifecycle (if provided).
+  private static class LifecycleListener<T> {
+    public Lifecycle lifecycle;
+    public OnUpdateListener<T> onUpdateListener;
+
+    public LifecycleListener(Lifecycle lifecycle, OnUpdateListener<T> onUpdateListener) {
+      this.lifecycle = lifecycle;
+      this.onUpdateListener = onUpdateListener;
+    }
   }
 }

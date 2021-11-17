@@ -1,13 +1,11 @@
 package com.example.asg4.model;
 
-import android.accessibilityservice.AccessibilityService;
 import android.os.Bundle;
-import android.os.Parcel;
-import android.os.Parcelable;
 
 import androidx.annotation.NonNull;
+
 import com.example.asg4.sqlite.Identifiable;
-import java.io.Serializable;
+
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -110,6 +108,27 @@ public class Task implements Comparable<Task>, Identifiable<Long> {
   │ Getters & Setters                                                        ─╬─│┼
   ╚────────────────────────────────────────────────────────────────────────────│*/
 
+  public static Task fromBundle(Bundle bundle) {
+    Task task = new Task();
+
+    task.setId(bundle.getLong("id"));
+    task.setDescription(bundle.getString("description"));
+    task.setStatus(Status.values()[bundle.getInt("status")]);
+    task.setPriority(Priority.values()[bundle.getInt("priority")]);
+    task.setTags(bundle.getStringArrayList("tags"));
+
+    Date ret = null;
+    try {
+      if (bundle.containsKey("date"))
+        ret = new SimpleDateFormat("dd MM yyyy HH:mm:ss").parse(bundle.getString("date"));
+    } catch (ParseException e) {
+      e.printStackTrace();
+    }
+
+    task.setDue(ret);
+    return task;
+  }
+
   public UUID getUuid() {
     return uuid;
   }
@@ -177,12 +196,17 @@ public class Task implements Comparable<Task>, Identifiable<Long> {
     return end;
   }
 
+  public Task setEnd(Date end) {
+    this.end = end;
+    return this;
+  }
+
   public boolean getTrash() {
     return trash;
   }
 
-  public Task setEnd(Date end) {
-    this.end = end;
+  public Task setTrash(boolean trash) {
+    this.trash = trash;
     return this;
   }
 
@@ -305,11 +329,6 @@ public class Task implements Comparable<Task>, Identifiable<Long> {
     return this;
   }
 
-  public Task setTrash(boolean trash) {
-    this.trash = trash;
-    return this;
-  }
-
   public List<Annotation> getAnnotations() {
     return annotations;
   }
@@ -368,28 +387,6 @@ public class Task implements Comparable<Task>, Identifiable<Long> {
       bundle.putString("date", new SimpleDateFormat("dd MM yyyy HH:mm:ss").format(getDue()));
 
     return bundle;
-  }
-
-  public static Task fromBundle(Bundle bundle) {
-    Task task = new Task();
-
-    task.setId(bundle.getLong("id"));
-    task.setDescription(bundle.getString("description"));
-    task.setStatus(Status.values()[bundle.getInt("status")]);
-    task.setPriority(Priority.values()[bundle.getInt("priority")]);
-    task.setTags(bundle.getStringArrayList("tags"));
-
-
-    Date ret = null;
-    try {
-      if (bundle.containsKey("date"))
-        ret = new SimpleDateFormat("dd MM yyyy HH:mm:ss").parse(bundle.getString("date"));
-    } catch (ParseException e) {
-      e.printStackTrace();
-    }
-
-    task.setDue(ret);
-    return task;
   }
 
   /*───────────────────────────────────────────────────────────────────────────│─╗

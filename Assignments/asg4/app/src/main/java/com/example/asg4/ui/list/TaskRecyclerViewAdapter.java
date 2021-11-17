@@ -6,12 +6,15 @@ import android.text.TextWatcher;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+
 import androidx.recyclerview.widget.RecyclerView;
+
 import com.example.asg4.databinding.ListItemTaskBinding;
 import com.example.asg4.model.Priority;
 import com.example.asg4.model.Status;
 import com.example.asg4.model.Task;
 import com.example.asg4.sqlite.DatabaseException;
+
 import java.text.SimpleDateFormat;
 import java.util.Collections;
 import java.util.HashMap;
@@ -119,7 +122,8 @@ public class TaskRecyclerViewAdapter extends RecyclerView.Adapter<TaskRecyclerVi
   private TextWatcher filter() {
     return new TextWatcher() {
       @Override
-      public void beforeTextChanged(CharSequence charSequence, int start, int count, int after) {}
+      public void beforeTextChanged(CharSequence charSequence, int start, int count, int after) {
+      }
 
       @Override
       public void onTextChanged(CharSequence query, int start, int before, int after) {
@@ -141,7 +145,8 @@ public class TaskRecyclerViewAdapter extends RecyclerView.Adapter<TaskRecyclerVi
       }
 
       @Override
-      public void afterTextChanged(Editable editable) {}
+      public void afterTextChanged(Editable editable) {
+      }
     };
   }
 
@@ -154,10 +159,10 @@ public class TaskRecyclerViewAdapter extends RecyclerView.Adapter<TaskRecyclerVi
     private Task task;
 
     private HashMap<Priority, Integer> colorMap = new HashMap() {{
-      put(Priority.HIGH,   Color.rgb(229, 28, 88));
+      put(Priority.HIGH, Color.rgb(229, 28, 88));
       put(Priority.MEDIUM, Color.rgb(255, 165, 0));
-      put(Priority.LOW,    Color.rgb(255, 255, 0));
-      put(Priority.NONE,   Color.rgb(220, 220, 220));
+      put(Priority.LOW, Color.rgb(255, 255, 0));
+      put(Priority.NONE, Color.rgb(220, 220, 220));
     }};
 
     public ViewHolder(ListItemTaskBinding binding) {
@@ -221,7 +226,7 @@ public class TaskRecyclerViewAdapter extends RecyclerView.Adapter<TaskRecyclerVi
       // if the checkbox is not checked, set the status to pending
       if (!isChecked) {
         task.setStatus(Status.PENDING);
-      // set the task's status to completed
+        // set the task's status to completed
       } else {
         task.setStatus(Status.COMPLETED);
       }

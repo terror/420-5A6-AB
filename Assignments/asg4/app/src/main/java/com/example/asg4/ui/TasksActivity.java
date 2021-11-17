@@ -12,6 +12,7 @@ import androidx.navigation.NavController;
 import androidx.navigation.Navigation;
 import androidx.navigation.ui.AppBarConfiguration;
 import androidx.navigation.ui.NavigationUI;
+
 import com.example.asg4.R;
 import com.example.asg4.databinding.ActivityTasksBinding;
 import com.example.asg4.model.Action;
@@ -25,9 +26,16 @@ import com.example.asg4.viewmodel.TaskEditViewModel;
 import com.example.asg4.viewmodel.TaskListViewModel;
 import com.example.asg4.viewmodel.TaskRecyclerViewAdapterViewModel;
 import com.google.android.material.snackbar.Snackbar;
+
 import java.util.List;
 
 public class TasksActivity extends AppCompatActivity {
+  // constants
+  public static final String TASKS_NOTIFICATION_CHANNEL = "tasks-notification-channel";
+  public static final String TASKS_NOTIFICATION_GROUP = "tasks-notifications";
+
+  // saved task state
+  public List<Task> tasks;
   private AppBarConfiguration appBarConfiguration;
   private ActivityTasksBinding binding;
 
@@ -42,13 +50,6 @@ public class TasksActivity extends AppCompatActivity {
 
   // database handler
   private TaskDBHandler taskDBHandler;
-
-  // saved task state
-  public List<Task> tasks;
-
-  // constants
-  public static final String TASKS_NOTIFICATION_CHANNEL = "tasks-notification-channel";
-  public static final String TASKS_NOTIFICATION_GROUP = "tasks-notifications";
 
   public TasksActivity() {
     // create new view model instances
@@ -182,7 +183,7 @@ public class TasksActivity extends AppCompatActivity {
     // add a new task
     if (item.getAction().equals(Action.ADD))
       handleAdd(item.getTask());
-    // modify the task
+      // modify the task
     else {
       for (int i = 0; i < tasks.size(); ++i) {
         Task curr = tasks.get(i);
@@ -215,7 +216,7 @@ public class TasksActivity extends AppCompatActivity {
       // remove the added task
       if (item.getAction().equals(Action.ADD))
         handleRemove(item.getTask());
-      // change back modified task
+        // change back modified task
       else {
         for (int i = 0; i < tasks.size(); ++i)
           if (tasks.get(i).getId() == item.getTask().getId())

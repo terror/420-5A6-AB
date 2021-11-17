@@ -12,5 +12,6 @@ package com.example.asg4.sqlite;
  */
 public interface Identifiable<I> {
   I getId();
+
   Identifiable<I> setId(I id);
 }

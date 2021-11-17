@@ -14,9 +14,11 @@ import android.view.ViewGroup;
 import android.widget.CheckBox;
 import android.widget.RadioButton;
 import android.widget.RadioGroup;
+
 import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
 import androidx.navigation.Navigation;
+
 import com.example.asg4.R;
 import com.example.asg4.databinding.FragmentTaskEditBinding;
 import com.example.asg4.model.Action;
@@ -25,6 +27,7 @@ import com.example.asg4.model.Task;
 import com.example.asg4.ui.TasksActivity;
 import com.example.asg4.ui.util.DatePickerDialogFragment;
 import com.example.asg4.viewmodel.TaskEditViewModel;
+
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
@@ -45,9 +48,9 @@ public class TaskEditFragment extends Fragment {
   private Task task;
   // Map radio button ID's -> priority variants
   private HashMap<Integer, Priority> PRIORITY_RADIO_BUTTON_ID_MAP = new HashMap() {{
-    put(R.id.priority_high_radioButton,   Priority.HIGH);
+    put(R.id.priority_high_radioButton, Priority.HIGH);
     put(R.id.priority_medium_radioButton, Priority.MEDIUM);
-    put(R.id.priority_low_radioButton,    Priority.LOW);
+    put(R.id.priority_low_radioButton, Priority.LOW);
   }};
 
   // View model fields
@@ -170,7 +173,7 @@ public class TaskEditFragment extends Fragment {
         .setNegativeButton(android.R.string.ok, null)
         .setIcon(android.R.drawable.ic_dialog_alert)
         .show();
-     return;
+      return;
     }
 
     // Disable the date image button
@@ -285,7 +288,8 @@ public class TaskEditFragment extends Fragment {
   private TextWatcher onDescriptionTextChanged() {
     return new TextWatcher() {
       @Override
-      public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
+      public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+      }
 
       @Override
       public void onTextChanged(CharSequence s, int start, int before, int count) {
@@ -293,7 +297,8 @@ public class TaskEditFragment extends Fragment {
       }
 
       @Override
-      public void afterTextChanged(Editable editable) {}
+      public void afterTextChanged(Editable editable) {
+      }
     };
   }
 

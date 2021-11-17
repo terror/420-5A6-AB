@@ -3,12 +3,14 @@ package com.example.asg4.model;
 import android.content.Context;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
+
 import androidx.annotation.Nullable;
+
 import com.example.asg4.sqlite.Table;
 
 public class TaskDBHandler extends SQLiteOpenHelper {
   public static final String DATABASE_FILE_NAME = "tasks.db";
-  public static final int    DATABASE_VERSION   = 1;
+  public static final int DATABASE_VERSION = 1;
 
   private Table<Task> taskTable;
 
@@ -27,5 +29,6 @@ public class TaskDBHandler extends SQLiteOpenHelper {
   }
 
   @Override
-  public void onUpgrade(SQLiteDatabase database, int oldVersion, int newVersion) {}
+  public void onUpgrade(SQLiteDatabase database, int oldVersion, int newVersion) {
+  }
 }

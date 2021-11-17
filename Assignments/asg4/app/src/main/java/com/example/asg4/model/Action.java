@@ -8,7 +8,7 @@ public enum Action {
 
   public static String message(Action action) {
     HashMap<Priority, String> messageMap = new HashMap() {{
-      put(Action.ADD,  "Task added.");
+      put(Action.ADD, "Task added.");
       put(Action.EDIT, "Task modified.");
     }};
 

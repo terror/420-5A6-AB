@@ -12,17 +12,17 @@ public class TaskListViewModel extends ObservableModel<TaskListViewModel> {
     return action;
   }
 
+  public TaskListViewModel setAction(Action action) {
+    this.action = action;
+    return this;
+  }
+
   public Task getTask() {
     return task;
   }
 
   public TaskListViewModel setTask(Task task) {
     this.task = task;
-    return this;
-  }
-
-  public TaskListViewModel setAction(Action action) {
-    this.action = action;
     return this;
   }
 

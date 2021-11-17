@@ -2,12 +2,14 @@ package com.example.asg4.ui.editor;
 
 import android.app.DatePickerDialog;
 import android.widget.DatePicker;
+
 import com.example.asg4.ui.util.TimePickerDialogFragment;
+
 import java.util.Calendar;
 
 public class DatePickerDialogOnSetDateHandler implements DatePickerDialog.OnDateSetListener {
   private TaskEditFragment fragment;
-  private int hour   = 8;
+  private int hour = 8;
   private int minute = 0;
 
   public DatePickerDialogOnSetDateHandler(TaskEditFragment fragment) {
@@ -16,8 +18,8 @@ public class DatePickerDialogOnSetDateHandler implements DatePickerDialog.OnDate
 
   public DatePickerDialogOnSetDateHandler(TaskEditFragment fragment, int hour, int minute) {
     this.fragment = fragment;
-    this.hour     = hour;
-    this.minute   = minute;
+    this.hour = hour;
+    this.minute = minute;
   }
 
   @Override
